@@ -14,7 +14,8 @@ const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
 
 exports.run = ()=>{
-    _walkingOnCategory((error, result)=>{
+    let categoryUrl = mainUrl + '/essen/backzutaten_suessungsmittel.kat';
+    _walkingOnCategory(categoryUrl, (error, result)=>{
         if(error) console.log(error.message);
         else console.log(result);
     });
@@ -26,12 +27,13 @@ function _walkingOnHome()
 
 }
 
-function _walkingOnCategory(cb)
+function _walkingOnCategory(categoryUrl, cb)
 {
-    let url = mainUrl + '/essen/backzutaten_suessungsmittel.kat';
+    logger.log('info', 'start walking on category, url: %s', categoryUrl);
 
-    request(url, (error, response, html)=>{
+    request(categoryUrl, (error, response, html)=>{
         if(error) {
+            logger.log('error', 'error walking on category, url: %s | error message: %s', url, error.message);
             return cb(error.message, null);
         }
 
@@ -44,17 +46,17 @@ function _walkingOnCategory(cb)
             productListUrls.push($(categoryAnchor).attr('href'));
         });
 
-        logger.info('start walking on category ' + mainUrl + ' find data: ' + productListUrls.length);
-
-        async.mapSeries(productListUrls, (productListUrl, next)=>{
+        async.mapSeries(productListUrls, (productListUrl, cb2)=>{
             _walkingOnProductList(productListUrl, (error, result)=>{
-                if(error) return cb(error.message, null);
+                if(error) return cb2(error.message, null);
 
-                next(error, result);
+                cb2(error, result);
             });
         }, (error, result)=>{
-            if(error) cb(error, null);
-            else cb(null, result);
+            if(error) return cb(error, null);
+
+            logger.log('info', 'finish walking on category, url: %s', categoryUrl);
+            cb(null, result);
         });
     });
 }
@@ -65,8 +67,13 @@ function _walkingOnProductList(productListUrl, cb)
         page++;
         productListUrl = mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));
 
+        logger.log('info', 'start walking on product list, url: %s', productListUrl);
+
         request(productListUrl, (error, response, html)=>{
-            if(error) return cb(error.message, null);
+            if(error) {
+                logger.log('error', 'error walking on product list, url: %s | error message: %s', productListUrl, error.message);
+                return cb(error.message, null);
+            }
 
             let $ = cheerio.load(html);
             let products = $('.float-group').find('.cell.products');
@@ -81,7 +88,7 @@ function _walkingOnProductList(productListUrl, cb)
             });
 
             async.mapSeries(productUrls, (productUrl, cb3)=>{
-                _walkingOnProduct(productUrl, (error, result)=>{
+                _walkingOnProduct(mainUrl + productUrl, (error, result)=>{
                     cb3(error, result);
                 });
             }, (error, result)=>{
@@ -93,14 +100,20 @@ function _walkingOnProductList(productListUrl, cb)
     }, (error, result)=>{
         if(error) return cb(error.message, null);
 
+        logger.log('info', 'finish walking on product list, url: %s', productListUrl);
         cb(error, result);
     });
 }
 
 function _walkingOnProduct(productUrl, cb)
 {
-    request(mainUrl + productUrl, (error, response, html)=>{
-        if(error) return cb(error.message, null);
+    logger.log('info', 'start walking on product information, url: %s', productUrl);
+
+    request(productUrl, (error, response, html)=>{
+        if(error) {
+            logger.log('error', 'error walking on product information, url: %s | error message: %s', productUrl, error.message);
+            return cb(error.message, null);
+        }
 
         let $ = cheerio.load(html);
 
@@ -108,8 +121,15 @@ function _walkingOnProduct(productUrl, cb)
         let productInfoList = $('.product-info-item-list');
 
         result.title = _clean($('.page-title-headline').find('h1').text());
-        result.nutrition_info = _clean($(productInfoList).find('.nutrition-facts').text());
         result.image = mainUrl + $('.product-image').find('img').attr('src');
+        result.nutrition_info = [];
+
+        $(productInfoList).find('.nutrition-facts tr').each((i, nutrition)=>{
+            let label = _clean($(nutrition).find('td:nth-child(1)').text());
+            let value = _clean($(nutrition).find('td:nth-child(2)').text());
+
+            result.nutrition_info.push({label: label, value: value});
+        });
 
         $(productInfoList).find('.product-info-item').each((i, product)=>{
             let label = $(product).find('p:nth-child(1)').text();
@@ -154,8 +174,10 @@ function _walkingOnProduct(productUrl, cb)
                     break;
             }
         });
-console.log(result);
-process.exit();
+
+        logger.log('info', 'finish walking on product information, url: %s', productUrl);
+        console.log(result);
+        process.exit();
         cb(null, true);
     });
 }

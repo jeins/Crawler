@@ -2,30 +2,26 @@
 
 const express = require('express');
 const bodyParser = require('body-parser');
-const logger = require('morgan');
 const errorHandler = require('errorhandler');
 const dotenv = require('dotenv');
-const mongoose = require('mongoose');
+
+const logger = require('./Helper/Log');
+const mongoose = require('./Helper/Mongoose');
 
 dotenv.load({ path: '.env.example' });
 
 const app = express();
 
-mongoose.Promise = global.Promise;
-mongoose.connect(process.env.MONGODB_URI);
-mongoose.connection.on('error', () => {
-    console.log('MongoDB connection error. Please make sure MongoDB is running.');
-    process.exit();
-});
+mongoose.setup();
 
 app.set('port', process.env.PORT || 3000);
 app.set('host', process.env.HOST || 'localhost');
-app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(errorHandler());
 
 app.get('/version', (req, res)=>{
+    logger.log('info', 'get version');
     res.json({version: process.env.VERSION || '1.0.0'});
 });
 
