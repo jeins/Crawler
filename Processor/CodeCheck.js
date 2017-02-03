@@ -15,10 +15,15 @@ const maxPage = '100';
 
 exports.run = ()=>{
     let categoryUrl = mainUrl + '/essen/backzutaten_suessungsmittel.kat';
-    _walkingOnCategory(categoryUrl, (error, result)=>{
-        if(error) console.log(error.message);
-        else console.log(result);
-    });
+    // _walkingOnCategory(categoryUrl, (error, result)=>{
+    //     if(error) console.log(error.message);
+    //     else console.log(result);
+    // });
+//     let productListUrl = '/essen/brotaufstriche/schoko_nuss_milchcremes.kat';
+//     _walkingOnProductList(productListUrl, false, 15, 15, (error, result)=>{
+//             if(error) console.log(error.message);
+//             else console.log(result);
+//     })
 };
 
 function _walkingOnHome()
@@ -27,6 +32,13 @@ function _walkingOnHome()
 
 }
 
+/**
+ * uri => /essen/__category__.kat
+ * exp => /essen/backzutaten_suessungsmittel.kat
+ * @param categoryUrl
+ * @param cb
+ * @private
+ */
 function _walkingOnCategory(categoryUrl, cb)
 {
     logger.log('info', 'start walking on category, url: %s', categoryUrl);
@@ -47,7 +59,7 @@ function _walkingOnCategory(categoryUrl, cb)
         });
 
         async.mapSeries(productListUrls, (productListUrl, cb2)=>{
-            _walkingOnProductList(productListUrl, (error, result)=>{
+            _walkingOnProductList(productListUrl, true, 0, 0, (error, result)=>{
                 if(error) return cb2(error.message, null);
 
                 cb2(error, result);
@@ -61,10 +73,20 @@ function _walkingOnCategory(categoryUrl, cb)
     });
 }
 
-function _walkingOnProductList(productListUrl, cb)
+/**
+ * uri => /essen/__category__/__productList__.kat
+ * exp => /essen/backzutaten_suessungsmittel/backaroma.kat
+ * @param productListUrl
+ * @param allPage
+ * @param start
+ * @param end
+ * @param cb
+ * @private
+ */
+function _walkingOnProductList(productListUrl, allPage, start, end, cb)
 {
-    async.mapSeries(_.times(maxPage, String), (page, cb2)=>{
-        page++;
+    async.mapSeries(_getPage(allPage, start, end), (page, cb2)=>{
+        if(allPage) page++;
         productListUrl = mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));
 
         logger.log('info', 'start walking on product list, url: %s', productListUrl);
@@ -105,6 +127,13 @@ function _walkingOnProductList(productListUrl, cb)
     });
 }
 
+/**
+ * uri => /essen/__category__/__productList__/__product__.pro
+ * exp => /essen/backzutaten_suessungsmittel/backaroma/ean_42256199/id_1418316153/Alnatura_Orangenschale_gerieben.pro
+ * @param productUrl
+ * @param cb
+ * @private
+ */
 function _walkingOnProduct(productUrl, cb)
 {
     logger.log('info', 'start walking on product information, url: %s', productUrl);
@@ -176,10 +205,19 @@ function _walkingOnProduct(productUrl, cb)
         });
 
         logger.log('info', 'finish walking on product information, url: %s', productUrl);
-        console.log(result);
-        process.exit();
+        logger.log('warn', JSON.stringify(result));
         cb(null, true);
     });
+}
+
+function _getPage(allPage, start, end)
+{
+    if(allPage) return _.times(maxPage, String);
+
+    let page = [];
+    for(let i=start; i <= end; i++) page.push(i);
+
+    return page;
 }
 
 function _clean(str)
