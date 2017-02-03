@@ -13,7 +13,10 @@ const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
 
 exports.run = ()=>{
-
+    _walkingOnCategory((error, result)=>{
+        if(error) console.log(error.message);
+        else console.log(result);
+    });
 };
 
 function _walkingOnHome()
@@ -54,7 +57,8 @@ function _walkingOnCategory(cb)
 function _walkingOnProductList(productListUrl, cb)
 {
     async.mapSeries(_.times(maxPage, String), (page, cb2)=>{
-        productListUrl = mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page++));
+        page++;
+        productListUrl = mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));
 
         request(productListUrl, (error, response, html)=>{
             if(error) return cb(error.message, null);
@@ -145,7 +149,8 @@ function _walkingOnProduct(productUrl, cb)
                     break;
             }
         });
-
+console.log(result);
+process.exit();
         cb(null, true);
     });
 }
