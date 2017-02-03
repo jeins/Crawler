@@ -7,6 +7,7 @@ const async = require('async');
 const moment = require('moment');
 const uuid = require('uuid/v1');
 const util = require('util');
+const logger = require('../Helper/Log');
 
 
 const mainUrl = 'http://www.codecheck.info';
@@ -27,10 +28,12 @@ function _walkingOnHome()
 
 function _walkingOnCategory(cb)
 {
-    let url = 'http://www.codecheck.info/essen/backzutaten_suessungsmittel.kat';
+    let url = mainUrl + '/essen/backzutaten_suessungsmittel.kat';
 
     request(url, (error, response, html)=>{
-        if(error) return cb(error.message, null);
+        if(error) {
+            return cb(error.message, null);
+        }
 
         let $ = cheerio.load(html);
         let productListUrls = [];
@@ -40,6 +43,8 @@ function _walkingOnCategory(cb)
 
             productListUrls.push($(categoryAnchor).attr('href'));
         });
+
+        logger.info('start walking on category ' + mainUrl + ' find data: ' + productListUrls.length);
 
         async.mapSeries(productListUrls, (productListUrl, next)=>{
             _walkingOnProductList(productListUrl, (error, result)=>{
