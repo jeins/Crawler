@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const logger = require('./Log');
+const logger = require('./Logger');
 
 exports.setup = ()=>{
     mongoose.Promise = global.Promise;

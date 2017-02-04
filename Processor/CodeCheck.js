@@ -7,7 +7,7 @@ const async = require('async');
 const moment = require('moment');
 const uuid = require('uuid/v1');
 const util = require('util');
-const logger = require('../Helper/Log');
+const logger = require('../Helper/Logger');
 
 
 const mainUrl = 'http://www.codecheck.info';
