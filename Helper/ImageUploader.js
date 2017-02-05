@@ -7,8 +7,8 @@ const OAuth2 = google.auth.OAuth2;
 const path = require('path');
 const request = require('request');
 const async = require('async');
-const logger = require('../Helper/Logger');
-var readline = require('readline');
+const readline = require('readline');
+const logger = require('./Logger');
 
 let imgNameWithTyp, imgTyp, _url, _fileName;
 const tmpPath = path.resolve(__dirname) + '/../.tmp/';
@@ -71,7 +71,7 @@ function _getNewToken(oauth2Client, callback) {
         rl.close();
         oauth2Client.getToken(code, function(err, token) {
             if (err) {
-                console.log('Error while trying to retrieve access token', err);
+                logger.log('error', 'error while trying to retrieve access token', err);
                 return;
             }
             oauth2Client.credentials = token;

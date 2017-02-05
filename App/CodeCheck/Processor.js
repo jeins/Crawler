@@ -1,5 +1,18 @@
 'use strict';
 
+/**
+ * README:
+ * processor akan bekerja sesuai dengan perintah yang tertulis pada job.json
+ * informasi pada job.json terdiri dari nama function dan kebutuhan parameter dari setiap function, sebagai contoh:
+ *
+ *  {
+ *      "method": "_walkingOnProduct",
+ *      "url": "/essen/backzutaten_suessungsmittel/backaroma/ean_7610188127081/id_396127/Patissier_Geriebene_Zitronenschale.pro"
+ *  }
+ *
+ * perintah diatas dapat diartikan processor akan menjalankan function _walkingOnProduct dengan parameter product url yang diberikan
+ */
+
 const _ = require('lodash');
 const cheerio = require('cheerio');
 const request = require('request');
@@ -10,14 +23,19 @@ const path = require('path');
 const util = require('util');
 const fs = require('fs');
 const logger = require('../../Helper/Logger');
-const ImageUploader = require('../../Controller/ImageUploader');
+const ImageUploader = require('../../Helper/ImageUploader');
 
 
 const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
+const jobFile = path.resolve(__dirname) + '/job.json';
 let job;
 
-exports.run = ()=>{
+/**
+ * main
+ * @param cb
+ */
+exports.run = (cb)=>{
     async.waterfall([
         (cb)=>{
             _job('read', (error, result)=>{
@@ -52,8 +70,10 @@ exports.run = ()=>{
 
                     switch (todo.method){
                         case '_walkingOnHome':
+                            _walkingOnHome((error, result)=>{jobDoc(error, result);});
                             break;
                         case '_walkingOnCategory':
+                            _walkingOnCategory(todo.url, (error, result)=>{jobDoc(error, result);});
                             break;
                         case '_walkingOnProductList':
                             _walkingOnProductList(todo.url, todo.allPage, todo.start, todo.end, (error, result)=>{jobDoc(error, result);});
@@ -76,21 +96,17 @@ exports.run = ()=>{
                 else cb(null, arg);
             });
         }
-    ], (error, result)=>{
-        if(error){
-            console.log(error.message);
-        } else{
-            console.log(result);
-        }
-
-        process.exit();
-    });
+    ], cb);
 };
 
+/**
+ * read or write job documentation
+ * @param readOrWrite
+ * @param cb
+ * @private
+ */
 function _job(readOrWrite, cb)
 {
-    let jobFile = path.resolve(__dirname) + '/job.json';
-
     if(readOrWrite === 'read'){
         fs.readFile(jobFile, (err, data)=>{
             if(err) {
@@ -122,7 +138,6 @@ function _job(readOrWrite, cb)
 function _walkingOnHome(cb)
 {
     let url = 'http://www.codecheck.info/essen.kat';
-
 }
 
 /**
