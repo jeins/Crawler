@@ -51,7 +51,7 @@ function _prepareUploader(arg, cb)
     //     }
     // });
     oauth2Client.setCredentials({
-        access_token: 'ya29.GlvoA0ix0KbrrrwfriUsJY7LvylX08qifOuic-vJhYjRhpkRJAg6PY3IWO4ce0_y2-CQNCLEtOrj9KqnvMrxACBZCoSmfMLxRCtTqF5z1qKqpRC-sRqUkKeWQTjw'
+        access_token: 'ya29.GlvoA3N9meiRHt4fBorVPyHVexT0CaZeAfcnWjXYAr8yNAC_P2j2JXSSXr51EInF72N4roBSE16lOS8xNQR7btYHBcISxG7sBrOPpmS1Br7jmZqlRAsPgqdzGFr1'
     });
 
     cb(null, drive);
@@ -103,7 +103,7 @@ function _removeTmpImg(arg, cb)
             logger.log('error', 'error on removing image on tmp path, error message: %s', err.message);
             cb(err, null);
         } else{
-            cb(null, {done: true});
+            cb(null, {done: true, imgName: imgNameWithTyp});
         }
     });
 }

@@ -25,11 +25,8 @@ app.get('/version', (req, res)=>{
     res.json({version: process.env.VERSION || '1.0.0'});
 });
 
-const img = require('./Controller/ImageUploader');
-img.upload('http://www.codecheck.info/img/49565252/1', 'tester121233', (err, response)=>{
-    if(err) console.error(err.message);
-    else console.log(response);
-});
+const CodeCheckProcessor = require('./Processor/CodeCheck/CodeCheck');
+CodeCheckProcessor.run();
 
 app.listen(app.get('port'), app.get('host'), ()=>{
     console.log('Service is running at http://%s:%d in %s mode', app.get('host'), app.get('port'), app.get('env'));

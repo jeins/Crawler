@@ -6,27 +6,120 @@ const request = require('request');
 const async = require('async');
 const moment = require('moment');
 const uuid = require('uuid/v1');
+const path = require('path');
 const util = require('util');
-const logger = require('../Helper/Logger');
+const fs = require('fs');
+const logger = require('../../Helper/Logger');
+const ImageUploader = require('../../Controller/ImageUploader');
 
 
 const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
+let job;
 
 exports.run = ()=>{
-    let categoryUrl = mainUrl + '/essen/backzutaten_suessungsmittel.kat';
-    // _walkingOnCategory(categoryUrl, (error, result)=>{
-    //     if(error) console.log(error.message);
-    //     else console.log(result);
-    // });
-//     let productListUrl = '/essen/brotaufstriche/schoko_nuss_milchcremes.kat';
-//     _walkingOnProductList(productListUrl, false, 15, 15, (error, result)=>{
-//             if(error) console.log(error.message);
-//             else console.log(result);
-//     })
+    async.waterfall([
+        (cb)=>{
+            _job('read', (error, result)=>{
+                if(error) cb(error, null);
+                else cb(null, true);
+            });
+        },
+        (arg, cb)=>{
+            if(!_.isEmpty(job.todo)){
+                let index = 0;
+
+                async.mapSeries(job.todo, (todo, cb2)=>{
+                    logger.log('info', 'start job, method: %s | url: %s', todo.method, todo.url);
+
+                    let jobDoc = (error, result)=>{
+                        todo.timestamp = moment().toISOString();
+
+                        delete job.todo[index];
+                        index++;
+
+                        if(error){
+                            logger.log('error', 'job failed, method: %s | url: %s', todo.method, todo.url);
+                            job.failed.push(todo);
+                            cb2(error, null);
+                        }
+                        else {
+                            logger.log('info', 'job completed, method: %s | url: %s', todo.method, todo.url);
+                            job.completed.push(todo);
+                            cb2(null, result);
+                        }
+                    };
+
+                    switch (todo.method){
+                        case '_walkingOnHome':
+                            break;
+                        case '_walkingOnCategory':
+                            break;
+                        case '_walkingOnProductList':
+                            _walkingOnProductList(todo.url, todo.allPage, todo.start, todo.end, (error, result)=>{jobDoc(error, result);});
+                            break;
+                        case '_walkingOnProduct':
+                            _walkingOnProduct(todo.url, (error, result)=>{jobDoc(error, result);});
+                            break;
+                    }
+                }, (error, result)=>{
+                    if(error) cb(error, null);
+                    else cb(null, result);
+                });
+            } else{
+                cb(null, false);
+            }
+        },
+        (arg, cb)=>{
+            _job('write', (error, result)=>{
+                if(error) cb(error, null);
+                else cb(null, arg);
+            });
+        }
+    ], (error, result)=>{
+        if(error){
+            console.log(error.message);
+        } else{
+            console.log(result);
+        }
+
+        process.exit();
+    });
 };
 
-function _walkingOnHome()
+function _job(readOrWrite, cb)
+{
+    let jobFile = path.resolve(__dirname) + '/job.json';
+
+    if(readOrWrite === 'read'){
+        fs.readFile(jobFile, (err, data)=>{
+            if(err) {
+                console.error(err.message);
+                return cb(err, null);
+            }
+
+            job = JSON.parse(data);
+            logger.log('info', 'read job');
+            cb(null, true);
+        });
+    } else if(readOrWrite === 'write'){
+        job.todo = _.remove(job.todo, (todo)=>{
+            return todo === null;
+        });
+
+        fs.writeFile(jobFile, JSON.stringify(job, null, 4), (err, data)=>{
+            if(err) {
+                console.error(err.message);
+                return cb(err, null);
+            }
+
+            logger.log('info', 'job has been finished');
+            cb(null, true);
+        });
+    }
+}
+
+function _walkingOnHome(cb)
 {
     let url = 'http://www.codecheck.info/essen.kat';
 
@@ -41,6 +134,7 @@ function _walkingOnHome()
  */
 function _walkingOnCategory(categoryUrl, cb)
 {
+    categoryUrl = mainUrl + categoryUrl;
     logger.log('info', 'start walking on category, url: %s', categoryUrl);
 
     request(categoryUrl, (error, response, html)=>{
@@ -110,7 +204,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
             });
 
             async.mapSeries(productUrls, (productUrl, cb3)=>{
-                _walkingOnProduct(mainUrl + productUrl, (error, result)=>{
+                _walkingOnProduct(productUrl, (error, result)=>{
                     cb3(error, result);
                 });
             }, (error, result)=>{
@@ -136,6 +230,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
  */
 function _walkingOnProduct(productUrl, cb)
 {
+    productUrl = mainUrl + productUrl;
     logger.log('info', 'start walking on product information, url: %s', productUrl);
 
     request(productUrl, (error, response, html)=>{
@@ -149,9 +244,16 @@ function _walkingOnProduct(productUrl, cb)
         let result = {};
         let productInfoList = $('.product-info-item-list');
 
+        result.id = uuid();
         result.title = _clean($('.page-title-headline').find('h1').text());
-        result.image = mainUrl + $('.product-image').find('img').attr('src');
+        result.image_raw = mainUrl + $('.product-image').find('img').attr('src');
+        result.url_raw = mainUrl + productUrl;
         result.nutrition_info = [];
+
+        if(_.isEmpty(result.title) || result.title === '') {
+            logger.log('error', 'cant record data from url: %s', productUrl);
+            return cb(null, false);
+        }
 
         $(productInfoList).find('.nutrition-facts tr').each((i, nutrition)=>{
             let label = _clean($(nutrition).find('td:nth-child(1)').text());
@@ -192,9 +294,9 @@ function _walkingOnProduct(productUrl, cb)
                 case 'Marke':
                     result.brand = value;
                     break;
-                case 'Hersteller (gemäss Strichcode-Verwaltung GS1)':
-                    result.producer_according_barcode_management = value;
-                    break;
+                // case 'Hersteller (gemäss Strichcode-Verwaltung GS1)':
+                //     result.producer_according_barcode_management = value;
+                //     break;
                 case 'Letzte Änderung':
                     result.updated_at = value;
                     break;
@@ -204,9 +306,16 @@ function _walkingOnProduct(productUrl, cb)
             }
         });
 
-        logger.log('info', 'finish walking on product information, url: %s', productUrl);
-        logger.log('warn', JSON.stringify(result));
-        cb(null, true);
+        ImageUploader.upload(result.image_raw, result.id, (error, res)=>{
+            if(!error && res.done){
+                result.image = res.imgName;
+            }
+
+            logger.log('info', 'finish walking on product information, url: %s', productUrl);
+            logger.log('warn', JSON.stringify(result));
+
+            cb(null, true);
+        });
     });
 }
 

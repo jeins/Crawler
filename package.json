@@ -4,7 +4,7 @@
   "description": "crawler everything....",
   "author": "Muhammad Juan Akbar",
   "scripts": {
-    "app:start": "nodemon index.js --debug"
+    "app:start": "node index.js"
   },
   "dependencies": {
     "async": "^2.1.4",
