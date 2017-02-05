@@ -2,6 +2,7 @@
 
 /**
  * README:
+ * target: codecheck.info
  * processor akan bekerja sesuai dengan perintah yang tertulis pada job.json
  * informasi pada job.json terdiri dari nama function dan kebutuhan parameter dari setiap function, sebagai contoh:
  *
@@ -25,17 +26,17 @@ const fs = require('fs');
 const logger = require('../../Helper/Logger');
 const GDriveUploader = require('../../Helper/GDriveUploader');
 
-
+const TAG = 'ProductFromCodeCheck';
+const jobFile = path.resolve(__dirname) + '/job.json';
 const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
-const jobFile = path.resolve(__dirname) + '/job.json';
 let job;
 
 /**
  * main
  * @param cb
  */
-exports.run = (cb)=>{
+exports.run = (mainCb)=>{
     async.waterfall([
         (cb)=>{
             _job('read', (error, result)=>{
@@ -48,7 +49,7 @@ exports.run = (cb)=>{
                 let index = 0;
 
                 async.mapSeries(job.todo, (todo, cb2)=>{
-                    logger.log('info', 'start job, method: %s | url: %s', todo.method, todo.url);
+                    logger.log('info', 'job start %s, method: %s | url: %s', TAG, todo.method, todo.url);
 
                     let jobDoc = (error, result)=>{
                         todo.timestamp = moment().toISOString();
@@ -57,12 +58,12 @@ exports.run = (cb)=>{
                         index++;
 
                         if(error){
-                            logger.log('error', 'job failed, method: %s | url: %s', todo.method, todo.url);
+                            logger.log('error', 'job failed %s, method: %s | url: %s', TAG, todo.method, todo.url);
                             job.failed.push(todo);
                             cb2(error, null);
                         }
                         else {
-                            logger.log('info', 'job completed, method: %s | url: %s', todo.method, todo.url);
+                            logger.log('info', 'job completed %s, method: %s | url: %s', TAG, todo.method, todo.url);
                             job.completed.push(todo);
                             cb2(null, result);
                         }
@@ -87,7 +88,8 @@ exports.run = (cb)=>{
                     else cb(null, result);
                 });
             } else{
-                cb(null, false);
+                logger.log('info', 'nothing todo on job %s ', TAG);
+                mainCb(null, false);
             }
         },
         (arg, cb)=>{
@@ -96,7 +98,7 @@ exports.run = (cb)=>{
                 else cb(null, arg);
             });
         }
-    ], cb);
+    ], mainCb);
 };
 
 /**
@@ -115,7 +117,7 @@ function _job(readOrWrite, cb)
             }
 
             job = JSON.parse(data);
-            logger.log('info', 'read job');
+            logger.log('info', 'read job %s', TAG);
             cb(null, true);
         });
     } else if(readOrWrite === 'write'){
@@ -129,7 +131,7 @@ function _job(readOrWrite, cb)
                 return cb(err, null);
             }
 
-            logger.log('info', 'job has been finished');
+            logger.log('info', 'job %s has been finished', TAG);
             cb(null, true);
         });
     }

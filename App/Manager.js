@@ -2,6 +2,7 @@
 
 const async = require('async');
 const CodeCheckProcessor = require('./CodeCheck/Processor');
+const HaditsProcessor = require('./Hadits/Processor');
 
 /**
  * register the processor
@@ -9,7 +10,8 @@ const CodeCheckProcessor = require('./CodeCheck/Processor');
  */
 exports.run = ()=>{
     let registerProcessor = [
-        CodeCheckProcessor
+        CodeCheckProcessor,
+        HaditsProcessor
     ];
 
     async.map(registerProcessor, (processor, cb)=>{
@@ -20,5 +22,7 @@ exports.run = ()=>{
         } else{
             console.log(result);
         }
+
+        process.exit();
     });
 };
