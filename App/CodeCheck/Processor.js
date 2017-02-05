@@ -88,7 +88,7 @@ exports.run = (mainCb)=>{
                     else cb(null, result);
                 });
             } else{
-                logger.log('info', 'nothing todo on job %s ', TAG);
+                logger.log('info', 'nothing to do on job %s ', TAG);
                 mainCb(null, false);
             }
         },
