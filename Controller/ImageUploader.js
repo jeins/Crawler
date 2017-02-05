@@ -2,17 +2,29 @@
 
 const fs = require('fs');
 const google = require('googleapis');
+const googleAuth = require('google-auth-library');
 const OAuth2 = google.auth.OAuth2;
 const path = require('path');
-const logger = require('../Helper/Logger');
 const request = require('request');
 const async = require('async');
+const logger = require('../Helper/Logger');
+var readline = require('readline');
 
 let imgNameWithTyp, imgTyp, _url, _fileName;
-const imgTmpPath = path.resolve(__dirname) + '/../log/';
+const tmpPath = path.resolve(__dirname) + '/../.tmp/';
+const gDriveTokenPath = tmpPath + 'gdrive_secret.json';
+const gDriveScopes = ['https://www.googleapis.com/auth/drive'];
 
 exports.upload = (url, fileName, cb)=>{
     _url = url; _fileName = fileName;
+
+    try {
+        fs.mkdirSync(tmpPath);
+    } catch (err) {
+        if (err.code != 'EEXIST') {
+            throw err;
+        }
+    }
 
     async.waterfall([
         _downloadImageToTmp,
@@ -22,43 +34,59 @@ exports.upload = (url, fileName, cb)=>{
     ], cb);
 };
 
-function _prepareUploader(arg, cb)
+function _prepareUploader(arg, callback)
 {
-    let oauth2Client = new OAuth2(
+    let auth = new googleAuth();
+    let oauth2Client = new auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
         process.env.GOOGLE_CLIENT_SECRET,
-        ''
+        process.env.GOOGLE_REDIRECT_URL
     );
 
-    let drive = google.drive({ version: 'v3', auth: oauth2Client });
-
-    // let tokenProvider = new GoogleTokenProvider({
-    //     'refresh_token': process.env.GOOGLE_REFRESH_TOKEN,
-    //     'client_id' : process.env.GOOGLE_CLIENT_ID,
-    //     'client_secret': process.env.GOOGLE_CLIENT_SECRET
-    // });
-
-    // oauth2Client.getToken('4/y2Bo8US49X05BLTEqaLEabTIn_tdl0-1HiLk1Dyexjc', (err, accessToken)=>{
-    //     if(err){
-    //         logger.log('error', 'cant generate google access token, error message: %s', err.message);
-    //         cb(err, null);
-    //     }else{
-    //         oauth2Client.setCredentials({
-    //             access_token: 'ya29.GlvoA0ix0KbrrrwfriUsJY7LvylX08qifOuic-vJhYjRhpkRJAg6PY3IWO4ce0_y2-CQNCLEtOrj9KqnvMrxACBZCoSmfMLxRCtTqF5z1qKqpRC-sRqUkKeWQTjw'
-    //         });
-    //
-    //         cb(null, drive);
-    //     }
-    // });
-    oauth2Client.setCredentials({
-        access_token: 'ya29.GlvoA3N9meiRHt4fBorVPyHVexT0CaZeAfcnWjXYAr8yNAC_P2j2JXSSXr51EInF72N4roBSE16lOS8xNQR7btYHBcISxG7sBrOPpmS1Br7jmZqlRAsPgqdzGFr1'
+    // Check if we have previously stored a token.
+    fs.readFile(gDriveTokenPath, function(err, token) {
+        if (err) {
+            _getNewToken(oauth2Client, (result)=>{
+                console.log(result);
+                callback(null, result);
+            });
+        } else {
+            oauth2Client.credentials = JSON.parse(token);
+            callback(null, oauth2Client);
+        }
     });
-
-    cb(null, drive);
 }
 
-function _upload(drive, cb)
+function _getNewToken(oauth2Client, callback) {
+    let authUrl = oauth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: gDriveScopes
+    });
+    console.log('Authorize this app by visiting this url: ', authUrl);
+    var rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+    rl.question('Enter the code from that page here: ', function(code) {
+        rl.close();
+        oauth2Client.getToken(code, function(err, token) {
+            if (err) {
+                console.log('Error while trying to retrieve access token', err);
+                return;
+            }
+            oauth2Client.credentials = token;
+            fs.writeFile(gDriveTokenPath, JSON.stringify(token), (err)=>{
+                if(err) throw err;
+
+                callback(oauth2Client);
+            });
+        });
+    });
+}
+
+function _upload(auth, cb)
 {
+    let drive = google.drive({ version: 'v3', auth: auth});
     drive.files.create({
         resource: {
             name: imgNameWithTyp,
@@ -66,7 +94,7 @@ function _upload(drive, cb)
         },
         media: {
             mimeType: imgTyp,
-            body: fs.createReadStream(imgTmpPath + imgNameWithTyp)
+            body: fs.createReadStream(tmpPath + imgNameWithTyp)
         }
     }, (err, result)=>{
         if(err){
@@ -85,7 +113,7 @@ function _downloadImageToTmp(cb)
         let typ = imgTyp.split('/');
         imgNameWithTyp = _fileName + '.' + typ[1];
 
-        request(_url).pipe(fs.createWriteStream(imgTmpPath + imgNameWithTyp)).on('close', (error, result)=>{
+        request(_url).pipe(fs.createWriteStream(tmpPath + imgNameWithTyp)).on('close', (error, result)=>{
             if(error){
                 logger.log('error', 'error on downloading image from url: %s', _url);
                 cb(err, null);
@@ -98,7 +126,7 @@ function _downloadImageToTmp(cb)
 
 function _removeTmpImg(arg, cb)
 {
-    fs.unlink(imgTmpPath + imgNameWithTyp, (err)=>{
+    fs.unlink(tmpPath + imgNameWithTyp, (err)=>{
         if(err){
             logger.log('error', 'error on removing image on tmp path, error message: %s', err.message);
             cb(err, null);

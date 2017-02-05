@@ -41,3 +41,6 @@ jspm_packages
 
 # IDE data
 .idea/
+
+# secret token
+.tmp/

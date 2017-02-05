@@ -312,7 +312,7 @@ function _walkingOnProduct(productUrl, cb)
             }
 
             logger.log('info', 'finish walking on product information, url: %s', productUrl);
-            logger.log('warn', JSON.stringify(result));
+            logger.log('data', JSON.stringify(result));
 
             cb(null, true);
         });
