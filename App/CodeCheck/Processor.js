@@ -23,7 +23,7 @@ const path = require('path');
 const util = require('util');
 const fs = require('fs');
 const logger = require('../../Helper/Logger');
-const ImageUploader = require('../../Helper/ImageUploader');
+const GDriveUploader = require('../../Helper/GDriveUploader');
 
 
 const mainUrl = 'http://www.codecheck.info';
@@ -245,6 +245,9 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
  */
 function _walkingOnProduct(productUrl, cb)
 {
+    let urlParam = productUrl.split('/');
+    let firstLvCategory = urlParam[2];
+    let secondLvCategory = urlParam[3];
     productUrl = mainUrl + productUrl;
     logger.log('info', 'start walking on product information, url: %s', productUrl);
 
@@ -321,13 +324,14 @@ function _walkingOnProduct(productUrl, cb)
             }
         });
 
-        ImageUploader.upload(result.image_raw, result.id, (error, res)=>{
+        GDriveUploader.uploadImg(result.image_raw, secondLvCategory, result.id, (error, res)=>{
             if(!error && res.done){
-                result.image = res.imgName;
+                result.image = secondLvCategory + '/' +res.imgName;
+                result.image_url = res.imgUrl;
             }
 
             logger.log('info', 'finish walking on product information, url: %s', productUrl);
-            logger.log('data', JSON.stringify(result));
+            logger.log('warn', JSON.stringify(result));
 
             cb(null, true);
         });
