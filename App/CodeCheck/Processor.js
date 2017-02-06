@@ -61,7 +61,7 @@ exports.run = (mainCb)=>{
                         if(error){
                             logger.log('error', 'job failed %s, method: %s | url: %s', TAG, todo.method, todo.url);
                             job.failed.push(todo);
-                            cb2(error, null);
+                            cb2(null, false);
                         }
                         else {
                             logger.log('info', 'job completed %s, method: %s | url: %s', TAG, todo.method, todo.url);
@@ -200,6 +200,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
     async.mapSeries(_getPage(allPage, start, end), (page, cb2)=>{
         if(allPage) page++;
         let previousPage = (page !== 1) ? page - 1 : page;
+
         productListUrl = (productListUrl.includes("page")) ?
             mainUrl + productListUrl.replace('/page' + previousPage, '/page' + page):
             mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));

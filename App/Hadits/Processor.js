@@ -57,7 +57,7 @@ exports.run = (mainCb)=>{
                         if(error){
                             logger.log('error', 'job failed %s, method: %s', TAG, todo.method);
                             job.failed.push(todo);
-                            cb2(error, null);
+                            cb2(null, false);
                         }
                         else {
                             logger.log('info', 'job completed %s, method: %s', TAG, todo.method);
