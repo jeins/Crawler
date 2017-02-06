@@ -25,6 +25,7 @@ const util = require('util');
 const fs = require('fs');
 const logger = require('../../Helper/Logger');
 const GDriveUploader = require('../../Helper/GDriveUploader');
+const Model = require('./Model');
 
 const TAG = 'ProductFromCodeCheck';
 const jobFile = path.resolve(__dirname) + '/job.json';
@@ -198,7 +199,10 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
 {
     async.mapSeries(_getPage(allPage, start, end), (page, cb2)=>{
         if(allPage) page++;
-        productListUrl = mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));
+        let previousPage = (page !== 1) ? page - 1 : page;
+        productListUrl = (productListUrl.includes("page")) ?
+            mainUrl + productListUrl.replace('/page' + previousPage, '/page' + page):
+            mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));
 
         logger.log('info', 'start walking on product list, url: %s', productListUrl);
 
@@ -266,9 +270,12 @@ function _walkingOnProduct(productUrl, cb)
 
         result.id = uuid();
         result.title = _clean($('.page-title-headline').find('h1').text());
-        result.image_raw = mainUrl + $('.product-image').find('img').attr('src');
-        result.url_raw = mainUrl + productUrl;
-        result.nutrition_info = [];
+        result.imageSrc = mainUrl + $('.product-image').find('img').attr('src');
+        result.urlSrc = mainUrl + productUrl;
+        result.firstLvCategory = firstLvCategory;
+        result.secondLvCategory = secondLvCategory;
+        result.crawledAt = moment().toISOString();
+        result.nutritionInfo = [];
 
         if(_.isEmpty(result.title) || result.title === '') {
             logger.log('error', 'cant record data from url: %s', productUrl);
@@ -279,7 +286,7 @@ function _walkingOnProduct(productUrl, cb)
             let label = _clean($(nutrition).find('td:nth-child(1)').text());
             let value = _clean($(nutrition).find('td:nth-child(2)').text());
 
-            result.nutrition_info.push({label: label, value: value});
+            result.nutritionInfo.push(JSON.stringify({label: label, value: value}));
         });
 
         $(productInfoList).find('.product-info-item').each((i, product)=>{
@@ -294,7 +301,7 @@ function _walkingOnProduct(productUrl, cb)
                     result.quantity = value;
                     break;
                 case 'Strichcode-Nummer':
-                    result.ean_code = value;
+                    result.eanCode = value;
                     break;
                 case 'Inhaltsstoffe / techn. Angaben':
                     result.ingredient = value;
@@ -303,7 +310,7 @@ function _walkingOnProduct(productUrl, cb)
                     result.seal = value;
                     break;
                 case 'Zusatzinformationen':
-                    result.other_info = value;
+                    result.otherInfo = value;
                     break;
                 case 'Herkunft':
                     result.origin = value;
@@ -318,24 +325,31 @@ function _walkingOnProduct(productUrl, cb)
                 //     result.producer_according_barcode_management = value;
                 //     break;
                 case 'Letzte Änderung':
-                    result.updated_at = value;
+                    result.updatedAt = value;
                     break;
                 case 'Erfasst':
-                    result.created_at = value;
+                    result.createdAt = value;
                     break;
             }
         });
 
-        GDriveUploader.uploadImg(result.image_raw, secondLvCategory, result.id, (error, res)=>{
+        GDriveUploader.uploadImg(result.imageSrc, secondLvCategory, result.id, (error, res)=>{
             if(!error && res.done){
-                result.image = secondLvCategory + '/' +res.imgName;
-                result.image_url = res.imgUrl;
+                result.image = res.imgName;
+                result.imageUrl = res.imgUrl;
             }
 
-            logger.log('info', 'finish walking on product information, url: %s', productUrl);
-            logger.log('warn', JSON.stringify(result));
+            let newFood = Model(result);
+            newFood.save((err)=>{
+                if(err){
+                    logger.log('error', 'error add data to db, url: %s | error message: %s', productUrl, error);
+                    return cb(err, null);
+                }
 
-            cb(null, true);
+                logger.log('info', 'finish walking on product information, url: %s', productUrl);
+                logger.log('warn', JSON.stringify(result));
+                cb(null, true);
+            });
         });
     });
 }

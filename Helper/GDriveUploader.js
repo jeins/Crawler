@@ -136,6 +136,10 @@ function _uploadImgToGDrive(auth, folderId, cb)
 function _downloadImageToTmp(cb)
 {
     request.head(_url, function(err, res, body){
+        if(err){
+            return cb(err.message, null);
+        }
+
         imgTyp = res.headers['content-type'];
         let typ = imgTyp.split('/');
         imgNameWithTyp = _fileName + '.' + typ[1];

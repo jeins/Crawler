@@ -20,6 +20,7 @@ const request = require('request');
 const cheerio = require('cheerio');
 const path = require('path');
 const logger = require('../../Helper/Logger');
+const Model = require('./Model');
 
 const TAG = 'HaditsFromRawahu';
 const jobFile = path.resolve(__dirname) + '/job.json';
@@ -171,9 +172,17 @@ function _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb)
         result.contentArab = _clean(_encodeUtf8(_clean($(content).find('.content__arabic').text())));
         result.contentIndo = _clean($(content).find('.content__translate').text());
 
-        logger.log('info', 'finish walking hadits, perawi: %s | nrHadits: %s | url: %s', perawi, nrHadits, url);
-        logger.log('warn', JSON.stringify(result));
-        cb(null, result);
+        let addHadits = Model(result);
+        addHadits.save((err)=>{
+            if(err){
+                logger.log('error', 'error add data to db, url: %s | error message: %s', url, error.message);
+                return cb(err.message, null);
+            }
+
+            logger.log('info', 'finish walking hadits, perawi: %s | nrHadits: %s | url: %s', perawi, nrHadits, url);
+            logger.log('warn', JSON.stringify(result));
+            cb(null, result);
+        });
     });
 }
 
