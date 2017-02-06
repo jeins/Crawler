@@ -202,7 +202,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
         let previousPage = (page !== 1) ? page - 1 : page;
 
         productListUrl = (productListUrl.includes("page")) ?
-            mainUrl + productListUrl.replace('/page' + previousPage, '/page' + page):
+            productListUrl.replace('/page' + previousPage, '/page' + page):
             mainUrl + productListUrl.replace('.kat', util.format('/page%d.kat', page));
 
         logger.log('info', 'start walking on product list, url: %s', productListUrl);
