@@ -180,7 +180,7 @@ function _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb)
             }
 
             logger.log('info', 'finish walking hadits, perawi: %s | nrHadits: %s | url: %s', perawi, nrHadits, url);
-            logger.log('warn', JSON.stringify(result));
+            //logger.log('warn', JSON.stringify(result));
             cb(null, result);
         });
     });

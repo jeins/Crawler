@@ -164,15 +164,18 @@ function _walkingOnCategory(categoryUrl, cb)
         let $ = cheerio.load(html);
         let productListUrls = [];
 
-        $('.float-group').find('.category').each((i, category)=>{
+        $('.float-group').find('.cell-text.category').each((i, category)=>{
             let categoryAnchor = $(category).find('a')[0];
+            let url = $(categoryAnchor).attr('href');
+            let tmpPage = $(category).find('.c.secondary').text().split(' ')[0];
+            let maxPage = Math.ceil(tmpPage / 50) + 1;
 
-            productListUrls.push($(categoryAnchor).attr('href'));
+            productListUrls.push({url: url, maxPage: maxPage});
         });
 
         async.mapSeries(productListUrls, (productListUrl, cb2)=>{
-            _walkingOnProductList(productListUrl, true, 0, 0, (error, result)=>{
-                if(error) return cb2(error.message, null);
+            _walkingOnProductList(productListUrl.url, false, 1, productListUrl.maxPage, (error, result)=>{
+                if(error) return cb(error, null);
 
                 cb2(error, result);
             });
@@ -230,7 +233,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
                     cb3(error, result);
                 });
             }, (error, result)=>{
-                if(error) return cb(error.message, null);
+                if(error) return cb(error, null);
 
                 cb2(error, result);
             });
@@ -348,7 +351,7 @@ function _walkingOnProduct(productUrl, cb)
                 }
 
                 logger.log('info', 'finish walking on product information, url: %s', productUrl);
-                logger.log('warn', JSON.stringify(result));
+                //logger.log('warn', JSON.stringify(result));
                 cb(null, true);
             });
         });
