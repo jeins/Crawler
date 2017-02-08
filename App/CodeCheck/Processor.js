@@ -275,7 +275,7 @@ function _walkingOnProduct(productUrl, cb)
         result.id = uuid();
         result.title = _clean($('.page-title-headline').find('h1').text());
         result.imageSrc = mainUrl + $('.product-image').find('img').attr('src');
-        result.urlSrc = mainUrl + productUrl;
+        result.urlSrc = productUrl;
         result.firstLvCategory = firstLvCategory;
         result.secondLvCategory = secondLvCategory;
         result.crawledAt = moment().toISOString();
