@@ -6,6 +6,7 @@ const schema = new mongoose.Schema({
     title: String,
     firstLvCategory: String,
     secondLvCategory: String,
+    thirdLvCategory: String,
     nutritionInfo: [{}],
     category: String,
     quantity: String,
