@@ -222,11 +222,11 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
 
 
             if(productsLength === 0) {
-		if(page == 1){
-			logger.log('warn', 'no product found on, url: %s', productListUrl);
-		}
-		return cb2(null, true);
-	    }
+                if(page == 1){
+                    logger.log('warn', 'no product found on, url: %s', productListUrl);
+                }
+                return cb2(null, true);
+            }
 
             let productUrls = [];
             products.each((i, product)=>{
@@ -263,7 +263,7 @@ function _walkingOnProduct(productUrl, cb)
     let urlParam = productUrl.split('/');
     let firstLvCategory = urlParam[2];
     let secondLvCategory = urlParam[3]; 
-    let haveThirdLvCategory = (urlParam[4].includes('ean_')) ? false : true;
+    let haveThirdLvCategory = (!urlParam[4].includes('ean_'));
     let thirdLvCategory = (haveThirdLvCategory) ? urlParam[4] : '';
 
     productUrl = mainUrl + productUrl;
@@ -287,7 +287,7 @@ function _walkingOnProduct(productUrl, cb)
         result.firstLvCategory = firstLvCategory;
         result.secondLvCategory = secondLvCategory;
 
-	if(haveThirdLvCategory) result.thirdLvCategory = thirdLvCategory;
+	    if(haveThirdLvCategory) result.thirdLvCategory = thirdLvCategory;
 
         result.crawledAt = moment().toISOString();
         result.nutritionInfo = [];
@@ -348,7 +348,7 @@ function _walkingOnProduct(productUrl, cb)
             }
         });
 
-	let pathName = (haveThirdLvCategory) ? thirdLvCategory : secondLvCategory; 
+	    let pathName = (haveThirdLvCategory) ? thirdLvCategory : secondLvCategory;
         GDriveUploader.uploadImg(result.imageSrc, pathName, result.id, (error, res)=>{
             if(!error && res.done){
                 result.image = res.imgName;
