@@ -263,7 +263,7 @@ function _walkingOnProduct(productUrl, cb)
     let urlParam = productUrl.split('/');
     let firstLvCategory = urlParam[2];
     let secondLvCategory = urlParam[3]; 
-    let haveThirdLvCategory = (!urlParam[4].includes('ean_'));
+    let haveThirdLvCategory = (!urlParam[4].includes('ean_') && !urlParam[4].includes('id_'));
     let thirdLvCategory = (haveThirdLvCategory) ? urlParam[4] : '';
 
     productUrl = mainUrl + productUrl;
