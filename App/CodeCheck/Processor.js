@@ -266,6 +266,16 @@ function _walkingOnProduct(productUrl, cb)
     let haveThirdLvCategory = (!urlParam[4].includes('ean_') && !urlParam[4].includes('id_'));
     let thirdLvCategory = (haveThirdLvCategory) ? urlParam[4] : '';
 
+    if(!haveThirdLvCategory && urlParam[1] === 'getraenke'){
+        firstLvCategory = urlParam[1];
+        secondLvCategory = urlParam[2];
+
+        if(!urlParam[3].includes('ean_') && !urlParam[3].includes('id_')){
+            thirdLvCategory = urlParam[3];
+            haveThirdLvCategory = true;
+        }
+    }
+
     productUrl = mainUrl + productUrl;
     logger.log('info', 'start walking on product information, url: %s', productUrl);
 
