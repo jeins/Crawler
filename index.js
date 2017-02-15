@@ -22,6 +22,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(errorHandler());
 
 AppManager.run();
+AppManager.runTracker();
 
 app.get('/version', (req, res)=>{
     logger.log('info', 'get version');

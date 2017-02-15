@@ -34,8 +34,8 @@ const maxPage = '100';
 let job;
 
 /**
- * main
- * @param cb
+ * main craw
+ * @param mainCb
  */
 exports.run = (mainCb)=>{
     async.waterfall([
@@ -98,6 +98,20 @@ exports.run = (mainCb)=>{
                 if(error) cb(error, null);
                 else cb(null, arg);
             });
+        }
+    ], mainCb);
+};
+
+/**
+ * main tracker
+ * @param mainCb
+ */
+exports.tracker = (mainCb)=>{
+    logger.log('info', 'tracker on %s is starting', TAG);
+
+    async.waterfall([
+        (cb)=>{
+            _walkingOnNewProductList(cb);
         }
     ], mainCb);
 };
@@ -358,25 +372,93 @@ function _walkingOnProduct(productUrl, cb)
             }
         });
 
-	    let pathName = (haveThirdLvCategory) ? thirdLvCategory : secondLvCategory;
-        GDriveUploader.uploadImg(result.imageSrc, pathName, result.id, (error, res)=>{
-            if(!error && res.done){
-                result.image = res.imgName;
-                result.imageUrl = res.imgUrl;
+        _checkIsProductExist(result.eanCode, (err, isExist)=>{
+            if(err) return cb(err, null);
+
+            if(isExist){
+                logger.log('warn', 'product is exist, ean code: %s', result.eanCode);
+                return cb(null, false);
+            } else{
+                let pathName = (haveThirdLvCategory) ? thirdLvCategory : secondLvCategory;
+                GDriveUploader.uploadImg(result.imageSrc, pathName, result.id, (error, res)=>{
+                    if(!error && res.done){
+                        result.image = res.imgName;
+                        result.imageUrl = res.imgUrl;
+                    }
+
+                    let newFood = Model(result);
+                    newFood.save((err)=>{
+                        if(err){
+                            logger.log('error', 'error add data to db, url: %s | error message: %s', productUrl, error);
+                            return cb(err, null);
+                        }
+
+                        logger.log('info', 'finish walking on product information, url: %s', productUrl);
+                        //logger.log('warn', JSON.stringify(result));
+                        cb(null, true);
+                    });
+                });
+            }
+        });
+    });
+}
+
+function _walkingOnNewProductList(cb)
+{
+    async.mapSeries(_.times(maxPage, String), (page, cb2)=>{
+        page++;
+        let url = mainUrl + '/community/neue-produkte/' + page;
+
+        request(url, (error, response, html)=>{
+            if(error) {
+                logger.log('error', 'error walking on new product list, url: %s | error message: %s', url, error.message);
+                return cb(error.message, null);
             }
 
-            let newFood = Model(result);
-            newFood.save((err)=>{
-                if(err){
-                    logger.log('error', 'error add data to db, url: %s | error message: %s', productUrl, error);
-                    return cb(err, null);
-                }
+            let $ = cheerio.load(html);
+            let selectedPage = $('.nums').find('span').first().text();
 
-                logger.log('info', 'finish walking on product information, url: %s', productUrl);
-                //logger.log('warn', JSON.stringify(result));
-                cb(null, true);
+            if(selectedPage != page) {
+                logger.log('warn', 'selected page not found, url: %s | current page: %d', url, selectedPage);
+                return cb(null, false);
+            }
+
+            let productUrls = [];
+            $('.area.new-products-row').each((i, product)=>{
+                let isFood = $(product).html().includes('/essen/');
+                let isDrink = $(product).html().includes('/getraenke/');
+                let isEanCodeNotNull = true;
+
+                $(product).find('.row').each((j, row)=>{
+                    if($(row).text().includes('Strichcode-Nummer') && $(row).text().includes('Bitte erfassen')){
+                        isEanCodeNotNull = false;
+                    }
+                });
+
+                if((isFood || isDrink) && isEanCodeNotNull){
+                    productUrls.push($(product).find('.nf').attr('href'));
+                }
             });
+
+            async.mapSeries(productUrls, (productUrl, cb3)=>{
+                _walkingOnProduct(productUrl, cb3);
+            }, cb2);
         });
+    }, cb);
+}
+
+function _checkIsProductExist(eanCode, cb){
+    let query  = Model.where({eanCode: eanCode});
+
+    query.findOne(function (err, doc) {
+        if(err){
+            logger.log('error', 'error on check existing of ean code, ean code: %s | error message: %s', eanCode, err.message);
+            return cb(err, null);
+        }
+
+        if(doc){
+            cb(null, true);
+        } else cb(null, false);
     });
 }
 
