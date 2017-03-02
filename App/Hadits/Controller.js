@@ -10,7 +10,7 @@ router.get('/:perawi', (req, res)=>{
 	let params = {perawi: perawi};
 
 	Hadits.count(params, (err, count)=>{
-		if(err) res.status(500).send(error);
+		if(err) res.status(500).send(err);
 		else{
 			params['totalHadits'] = count;
 
@@ -28,12 +28,15 @@ router.get('/:perawi/:nrHadits', (req, res)=>{
 	};
 
 	Hadits.findOne(params, 'contentArab contentIndo', (err, hadits)=>{
-		if(err) res.status(500).send(error);
-		else{
+		if(err) res.status(500).send(err);
+		else if(hadits){
 			params['contentArab'] = decodeURIComponent(escape(hadits.contentArab));
 			params['contentIndo'] = hadits.contentIndo;
 
 			res.json(params);
+		} else{
+			params['notFound'] = true;
+			res.json(params)
 		}
 	});
 });

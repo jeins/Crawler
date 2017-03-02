@@ -11,8 +11,8 @@ router.get('/:eanCode', (req, res)=>{
 	let result = 'eanCode title ingredient imageUrl';
 
 	Product.findOne({eanCode: eanCode}, result, (err, product)=>{
-		if(err) res.status(500).send(error);
-		else{
+		if(err) res.status(500).send(err);
+		else if(product){
 			let productIngredientStatus = checkProduct(product.ingredient);
 			let result = {
 				eanCode: product.eanCode,
@@ -23,6 +23,8 @@ router.get('/:eanCode', (req, res)=>{
 			};
 
 			res.json(result);
+		} else{
+			res.json({notFound: true, eanCode: eanCode});
 		}
 	});
 });
