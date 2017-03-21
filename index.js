@@ -8,8 +8,9 @@ const dotenv = require('dotenv');
 const logger = require('./Helper/Logger');
 const mongoose = require('./Helper/Mongoose');
 const AppManager = require('./App/Manager');
+const ApiManager = require('./App/ApiManager');
 
-dotenv.load({ path: '.env.example' });
+dotenv.load({ path: '.env' });
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(errorHandler());
 
 AppManager.run();
 AppManager.runTracker();
+AppManager.run();
 
 app.get('/version', (req, res)=>{
     logger.log('info', 'get version');

@@ -1,21 +1,31 @@
 'use strict';
 
 const async = require('async');
+const cron = require('cron');
+const _ = require('lodash');
+
 const CodeCheckProcessor = require('./CodeCheck/Processor');
 const HaditsProcessor = require('./Hadits/Processor');
-const cron = require('cron');
+
+let registerProcessor = [
+    {processor: CodeCheckProcessor, run: true, tracker: true},
+    {processor: HaditsProcessor, run: true, tracker: false}
+];
 
 /**
  * register the processor
  * the default function to run the processor is run(cb);
  */
 exports.run = ()=>{
-    let registerProcessor = [
-        CodeCheckProcessor,
-        HaditsProcessor
-    ];
+    let run = [];
 
-    async.map(registerProcessor, (processor, cb)=>{
+    _.forEach(registerProcessor, (pro)=>{
+        if(pro.run){
+            run.push(pro.processor);
+        }
+    });
+
+    async.map(run, (processor, cb)=>{
         processor.run(cb);
     }, (error, result)=>{
         if(error){
@@ -30,17 +40,23 @@ exports.run = ()=>{
  * register the tracker cron job
  */
 exports.runTracker = ()=>{
-    // register cron job
-    let ccpJob = cron.job("0 0 */8 * * *", ()=>{
-        CodeCheckProcessor.tracker((error, result)=>{
-            if(error){
-                console.log(error.message);
-            } else{
-                console.log(result);
-            }
-        });
+    let tracker = [];
+
+    _.forEach(registerProcessor, (pro)=>{
+        if(pro.tracker){
+            tracker.push(pro.processor);
+        }
     });
 
-    // start cron jon
-    ccpJob.start();
+    async.map(tracker, (processor, cb)=>{
+        cron.job("0 0 */8 * * *", ()=>{
+            processor.tracker(cb);
+        }).start();
+    }, (error, result)=>{
+        if(error){
+            console.log(error.message);
+        } else{
+            console.log(result);
+        }
+    });
 };
