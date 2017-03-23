@@ -24,7 +24,7 @@ app.use(errorHandler());
 
 AppManager.run();
 AppManager.runTracker();
-AppManager.run();
+ApiManager.run(app);
 
 app.get('/version', (req, res)=>{
     logger.log('info', 'get version');

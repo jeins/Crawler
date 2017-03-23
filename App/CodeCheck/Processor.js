@@ -447,6 +447,25 @@ function _walkingOnNewProductList(cb)
     }, cb);
 }
 
+function _walkingOnUpdateProduct(maxDate, cb)
+{
+    let maxPage = 200;
+    async.mapSeries(_.times(maxPage, String), (page, cb2)=>{
+        page++;
+        let url = mainUrl + '/community/letzte-aenderungen/' + page;
+
+        request(url, (error, response, html)=>{
+            if(error) {
+                logger.log('error', 'error walking on updated product list, url: %s | error message: %s', url, error.message);
+                return cb(error.message, null);
+            }
+
+
+            
+        });
+    }, cb);
+}
+
 function _checkIsProductExist(eanCode, cb){
     let query  = Model.where({eanCode: eanCode});
 
