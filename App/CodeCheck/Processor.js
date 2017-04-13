@@ -31,6 +31,7 @@ const TAG = 'ProductFromCodeCheck';
 const jobFile = path.resolve(__dirname) + '/job.json';
 const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
+const allowedProductCateogries = ['essen', 'getraenke'];
 let job;
 
 /**
@@ -110,9 +111,8 @@ exports.tracker = (mainCb)=>{
     logger.log('info', 'tracker on %s is starting', TAG);
 
     async.waterfall([
-        (cb)=>{
-            _walkingOnNewProductList(cb);
-        }
+        _walkingOnNewProductList,
+        async.apply(_walkingOnUpdateProduct, '1')
     ], mainCb);
 };
 
@@ -372,14 +372,37 @@ function _walkingOnProduct(productUrl, cb)
             }
         });
 
-        _checkIsProductExist(result.eanCode, (err, isExist)=>{
+        _checkIsProductExist(result.eanCode, (err, prod)=>{
             if(err) return cb(err, null);
 
-            if(isExist){
-                logger.log('warn', 'product is exist, ean code: %s', result.eanCode);
-                return cb(null, false);
+            let pathName = (haveThirdLvCategory) ? thirdLvCategory : secondLvCategory;
+
+            if(prod.exist){
+                if(moment(prod.crawledAt).format('MMDDYYYY') !== moment(result.crawledAt).format('MMDDYYYY')){
+                    if(!prod.isImageExist && !result.imageSrc.includes('undefined')){
+                        GDriveUploader.uploadImg(result.imageSrc, pathName, result.id, (error, res)=>{
+                            if(!error && res.done){
+                                result.image = res.imgName;
+                                result.imageUrl = res.imgUrl;
+                            }
+
+                            logger.log('warn', 'product with new image is updated, ean code: %s', result.eanCode);
+
+                            Model.update({id: prod.id}, {$set: result}, cb);
+                        });
+                    } else{
+                        logger.log('warn', 'product is updated, ean code: %s', result.eanCode);
+
+                        Model.update({id: prod.id}, {$set: result}, cb);
+                    }
+                } else{
+                    logger.log('warn', 'product is exist, ean code: %s', result.eanCode);
+
+                    cb(null, false);
+                }
+
+                return;
             } else{
-                let pathName = (haveThirdLvCategory) ? thirdLvCategory : secondLvCategory;
                 GDriveUploader.uploadImg(result.imageSrc, pathName, result.id, (error, res)=>{
                     if(!error && res.done){
                         result.image = res.imgName;
@@ -398,7 +421,7 @@ function _walkingOnProduct(productUrl, cb)
                         cb(null, true);
                     });
                 });
-            }
+            }   
         });
     });
 }
@@ -447,10 +470,15 @@ function _walkingOnNewProductList(cb)
     }, cb);
 }
 
-function _walkingOnUpdateProduct(maxDate, cb)
+function _walkingOnUpdateProduct(maxPrevDate, cb)
 {
-    let maxPage = 200;
-    async.mapSeries(_.times(maxPage, String), (page, cb2)=>{
+    moment.locale('de');
+
+    let maxDate = (!maxPrevDate) ? 
+                moment().add('-100', 'days').format('ll') : 
+                moment().add('-'+maxPrevDate, 'days').format('ll');
+
+    async.mapSeries(_.times(200, String), (page, cb2)=>{
         page++;
         let url = mainUrl + '/community/letzte-aenderungen/' + page;
 
@@ -460,10 +488,57 @@ function _walkingOnUpdateProduct(maxDate, cb)
                 return cb(error.message, null);
             }
 
-
+            let $ = cheerio.load(html);
+            let productUrls = [];
+            let changeOn = '';
             
+            $('.title').each((i, productBlock)=>{
+                let categoryUrl = $(productBlock).find('.cat').find('a').attr('href');
+                let editProductUrl = $(productBlock).find('h1').find('a').attr('href');
+                changeOn = $(productBlock).find('.changed').find('a').first().text().replace(',', '');
+
+                _.forEach(allowedProductCateogries, (apc)=>{
+                    if(categoryUrl.includes(apc)){
+                        let productEditUrl = mainUrl + editProductUrl;
+
+                        if(!_.includes(productUrls, productEditUrl)){
+                            productUrls.push(productEditUrl);
+                        }
+                    }
+                });
+            });
+
+            async.mapSeries(productUrls, (productUrl, cb3)=>{
+                async.waterfall([
+                    async.apply(_walkingOnEditedProductToGetProductUrl, productUrl),
+                    _walkingOnProduct
+                ], cb3);
+            }, (err, res)=>{
+                if(_isSameDate(changeOn, maxDate)){
+                    logger.log('warn', 'max date is reached, last url: %s', url);
+
+                    cb(null, false);
+                    return false;
+                }
+                cb2(err, res);
+            });
         });
     }, cb);
+}
+
+function _walkingOnEditedProductToGetProductUrl(url, cb){
+    request(url, (err, res, html)=>{
+        if(err){
+            logger.log('error', 'error on get url of edited product, url: %s | error message: %s', url, err.message);
+
+            return cb(err.message, null);
+        }
+
+        let $ = cheerio.load(html);
+        let productUrl = $('.bcd').last().find('a').attr('href');
+
+        cb(null, productUrl);
+    });
 }
 
 function _checkIsProductExist(eanCode, cb){
@@ -476,8 +551,11 @@ function _checkIsProductExist(eanCode, cb){
         }
 
         if(doc){
-            cb(null, true);
-        } else cb(null, false);
+            let result = {exist: true, id: doc.id, crawledAt: doc.crawledAt};
+            result.isImageExist = (doc.imageUrl) ? true : false;
+
+            cb(null, result);
+        } else cb(null, {exist: false});
     });
 }
 
@@ -494,4 +572,15 @@ function _getPage(allPage, start, end)
 function _clean(str)
 {
     return str.replace(/(\r\n|\n|\r|\t)/gm,"");
+}
+
+function _isSameDate(dateA, dateB){
+    //let tmpA = dateA.split(' ');
+    let tmpB = dateB.split(' ');
+
+    if(dateA.includes(tmpB[0]) && dateA.includes(tmpB[1].replace('.', '')) && dateA.includes(tmpB[2])){
+        return true;
+    } 
+
+    return false;
 }
