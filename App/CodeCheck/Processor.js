@@ -448,8 +448,7 @@ function _walkingOnNewProductList(cb)
 
             let productUrls = [];
             $('.area.new-products-row').each((i, product)=>{
-                let isFood = $(product).html().includes('/essen/');
-                let isDrink = $(product).html().includes('/getraenke/');
+                let productCat = $(product).html();
                 let isEanCodeNotNull = true;
 
                 $(product).find('.row').each((j, row)=>{
@@ -458,9 +457,11 @@ function _walkingOnNewProductList(cb)
                     }
                 });
 
-                if((isFood || isDrink) && isEanCodeNotNull){
-                    productUrls.push($(product).find('.nf').attr('href'));
-                }
+                _.forEach(allowedProductCateogries, (apc)=>{
+                    if(productCat.includes(apc) && isEanCodeNotNull){
+                        productUrls.push($(product).find('.nf').attr('href'));
+                    }
+                });
             });
 
             async.mapSeries(productUrls, (productUrl, cb3)=>{
