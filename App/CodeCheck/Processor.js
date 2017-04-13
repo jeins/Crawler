@@ -31,7 +31,7 @@ const TAG = 'ProductFromCodeCheck';
 const jobFile = path.resolve(__dirname) + '/job.json';
 const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
-const allowedProductCateogries = ['essen', 'getraenke'];
+const allowedProductCategories = ['essen', 'getraenke', 'babynahrung', 'babygetraenke'];
 let job;
 
 /**
@@ -457,7 +457,7 @@ function _walkingOnNewProductList(cb)
                     }
                 });
 
-                _.forEach(allowedProductCateogries, (apc)=>{
+                _.forEach(allowedProductCategories, (apc)=>{
                     if(productCat.includes(apc) && isEanCodeNotNull){
                         productUrls.push($(product).find('.nf').attr('href'));
                     }
@@ -498,7 +498,7 @@ function _walkingOnUpdateProduct(maxPrevDate, cb)
                 let editProductUrl = $(productBlock).find('h1').find('a').attr('href');
                 changeOn = $(productBlock).find('.changed').find('a').first().text().replace(',', '');
 
-                _.forEach(allowedProductCateogries, (apc)=>{
+                _.forEach(allowedProductCategories, (apc)=>{
                     if(categoryUrl.includes(apc)){
                         let productEditUrl = mainUrl + editProductUrl;
 
