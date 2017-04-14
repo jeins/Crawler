@@ -60,7 +60,8 @@ function checkProductByIngredients(ingredient){
 	ingredient = ingredient.toLowerCase();
 
 	_.forEach(haramIngredients, (haramIngredient)=>{
-		if(_.includes(ingredient, haramIngredient)){
+		let isSingleWord = new RegExp( '\\b' + ingredient + '\\b', 'i').test(haramIngredient);
+		if(_.includes(ingredient, haramIngredient) && ){
 			status = 'haram';
 			ingredient = highlightHaramIngredients(ingredient, haramIngredient);
 		}
