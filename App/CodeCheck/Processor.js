@@ -31,7 +31,10 @@ const TAG = 'ProductFromCodeCheck';
 const jobFile = path.resolve(__dirname) + '/job.json';
 const mainUrl = 'http://www.codecheck.info';
 const maxPage = '100';
-const allowedProductCategories = ['essen', 'getraenke', 'babynahrung', 'babygetraenke'];
+const allowedProductCategories = [
+    'essen', 'getraenke', 'babynahrung', 'babygetraenke', 'baby_gesundheit',
+    'alternativmedizin', 'medikamente', 'vitamine_mineralstoffe', 'nahrungsergaenzung_aufbaunahrung'
+];
 let job;
 
 /**
