@@ -6,10 +6,12 @@ const _ = require('lodash');
 
 const CodeCheckProcessor = require('./CodeCheck/Processor');
 const HaditsProcessor = require('./Hadits/Processor');
+const QuranProcessor = require('./Quran/Processor');
 
 let registerProcessor = [
     {processor: CodeCheckProcessor, run: true, tracker: true},
-    {processor: HaditsProcessor, run: true, tracker: false}
+    {processor: HaditsProcessor, run: true, tracker: false},
+    {processor: QuranProcessor, run: false, tracker: false}
 ];
 
 /**
