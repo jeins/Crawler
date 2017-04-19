@@ -60,7 +60,8 @@ function checkProductByIngredients(ingredient){
 	ingredient = ingredient.toLowerCase();
 
 	_.forEach(haramIngredients, (haramIngredient)=>{
-		let isSingleWord = new RegExp( '\\b' + ingredient + '\\b', 'i').test(haramIngredient);
+		let isSingleWord = new RegExp( '\\b' + haramIngredient + '\\b').test(ingredient);
+		
 		if(_.includes(ingredient, haramIngredient) && isSingleWord){
 			status = 'haram';
 			ingredient = highlightHaramIngredients(ingredient, haramIngredient);
@@ -68,6 +69,10 @@ function checkProductByIngredients(ingredient){
 	});
 
 	return {ingredient: ingredient, status: status};
+}
+
+function findWord(word, str) {
+  return str.split(' ').some(function(w){return w === word})
 }
 
 function checkProductByCategoryLv(prod){
