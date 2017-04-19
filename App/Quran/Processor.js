@@ -41,23 +41,20 @@ exports.run = ()=>{
 		_.forEach(objContentID.quran[keys[0]], (val, i)=>{
 			let result = {
 				surat: val.surah,
-				ayat: val.ayat,
+				ayat: val.ayah,
 				contentIndo: val.verse,
 				contentArab: _encodeUtf8(objContentAR.quran[keys[1]][i]['verse'])
 			};
 
-			console.log(result);
-			process.exit();
-
 			let quran = new Model(result);
 			quran.save((err)=>{
 	            if(err){
-	                logger.log('error', 'error add quran data to db, error message: %s', error.message);
+	                logger.log('error', 'error add quran data to db, data: %s | error message: %s', JSON.stringify(result), error.message);
 	                return false;
 	            }
-
-	            logger.log('info', 'finish record quran data');
 	        });
+
+            logger.log('info', 'added quran data %s', JSON.stringify(result));
 		});
 	});
 };
