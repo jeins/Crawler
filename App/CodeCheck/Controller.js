@@ -38,7 +38,7 @@ const haramIngredients = [
  * /product/{eanCode}:
  *   get:
  *     tags:
- *       - Product
+ *       - ProductInfo
  *     description: menampilkan informasi sebuah product berdasarkan ean-code
  *     produces:
  *       - application/json
