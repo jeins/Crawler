@@ -16,6 +16,44 @@ const haramIngredients = [
 	'e120', 'cochenille', 'karminsäure'
 ];
 
+/**
+ * @swagger
+ * definition:
+ *   product_s:
+ *     properties:
+ *       eanCode:
+ *         type: string
+ *       title:
+ *         type: string
+ *       imageUrl:
+ *         type: string
+ *       ingredient:
+ *         type: string
+ *       status:
+ *         type: string
+ */
+
+/**
+ * @swagger
+ * /product/{eanCode}:
+ *   get:
+ *     tags:
+ *       - Product
+ *     description: menampilkan informasi sebuah product berdasarkan ean-code
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: eanCode
+ *         description: product ean-code
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: product info
+ *         schema:
+ *           $ref: '#/definitions/product_s'
+ */
 router.get('/:eanCode', (req, res)=>{
 	let eanCode = req.params.eanCode;
 
@@ -35,7 +73,7 @@ router.get('/:eanCode', (req, res)=>{
 
 			res.json(result);
 		} else{
-			res.json({notFound: true, eanCode: eanCode});
+			res.status(404).json({notFound: true, eanCode: eanCode});
 		}
 	});
 });

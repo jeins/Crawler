@@ -5,6 +5,25 @@ const logger = require('../../Helper/Logger');
 const Hadits = require('./Model');
 const router = express.Router();
 
+/**
+ * @swagger
+ * /hadits/{perawi}:
+ *   get:
+ *     tags:
+ *       - Hadits
+ *     description: menampilkan total hadits yang tersedia berdasarkan perawi
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: perawi
+ *         description: nama perawi hadits
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: perawi dengan total hadits yang tersedia
+ */
 router.get('/:perawi', (req, res)=>{
 	let perawi = req.params.perawi;
 	let params = {perawi: perawi};
@@ -19,6 +38,30 @@ router.get('/:perawi', (req, res)=>{
 	});
 });
 
+/**
+ * @swagger
+ * /hadits/{perawi}/{nrHadits}:
+ *   get:
+ *     tags:
+ *       - Hadits
+ *     description: menampilkan hadits berdasarkan perawi dan nomor hadits
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: perawi
+ *         description: nama perawi hadits
+ *         in: path
+ *         required: true
+ *         type: string
+ *       - name: nrHadits
+ *         description: nama perawi hadits
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: perawi dengan total hadits yang tersedia
+ */
 router.get('/:perawi/:nrHadits', (req, res)=>{
 	let perawi = req.params.perawi;
 	let nrHadits = req.params.nrHadits;
@@ -36,7 +79,7 @@ router.get('/:perawi/:nrHadits', (req, res)=>{
 			res.json(params);
 		} else{
 			params['notFound'] = true;
-			res.json(params)
+			res.status(404).json(params)
 		}
 	});
 });
