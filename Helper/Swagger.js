@@ -8,7 +8,7 @@ exports.setup = (app)=>{
 	    	title: 'MJA-API',
 	    	version: process.env.VERSION
 	  	},
-	  	host: app.get('host') + ':' + app.get('port'),
+	  	host: process.env.API_URL,
 	  	basePath: '/',
 	};
 
