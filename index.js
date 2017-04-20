@@ -26,7 +26,7 @@ AppManager.run();
 AppManager.runTracker();
 ApiManager.run(app);
 
-app.get('/version', (req, res)=>{
+app.all('*', (req, res)=>{
     logger.log('info', 'get version');
     res.json({version: process.env.VERSION || '1.0.0'});
 });
