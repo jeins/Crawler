@@ -20,18 +20,15 @@ const mainUrl = 'https://www.zabihah.com';
 const targetUrl = 'https://www.zabihah.com/reg/uFbDwx42Uj';
 
 exports.run = (mainCb) => {
-    let test = [{city: 'Berlin', urlList: ['https://www.zabihah.com/biz/Spandau/Shawarma-One/EoxDqSH8Ur', 'https://www.zabihah.com/biz/Mitte/HB-Hasir-Burger/lP6vx41hFZ']}];
-    walkingOnRestaurantToGetInfomation(test, mainCb);
+    async.waterfall([
+        walkingOnHomeToGetCityList,
+        walkingOnCityToGetRestaurantList,
+        walkingOnRestaurantToGetInfomation
+    ], (err, res) => {
+        logger.log('info', 'stop walking on $s', TAG);
 
-    // async.waterfall([
-    //     walkingOnHomeToGetCityList,
-    //     walkingOnCityToGetRestaurantList,
-    //     walkingOnRestaurantToGetInfomation
-    // ], (err, res) => {
-    //     logger.log('info', 'stop walking on $s', TAG);
-    //
-    //     mainCb(err, res);
-    // });
+        mainCb(err, res);
+    });
 };
 
 /**
