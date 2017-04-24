@@ -18,7 +18,7 @@ const haramIngredients = [
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   product_s:
  *     properties:
  *       eanCode:

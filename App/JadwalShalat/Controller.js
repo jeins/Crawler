@@ -6,7 +6,7 @@ const Praytimes = require('./Praytimes');
 const router = express.Router();
 /**
  * @swagger
- * definition:
+ * definitions:
  *   jadwalshalat_s:
  *     properties:
  *       date:

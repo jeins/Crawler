@@ -10,7 +10,7 @@ const listAyat = ["7", "286", "200", "176", "120", "165", "206", "75", "129", "1
 
 /**
  * @swagger
- * definition:
+ * definitions:
  *   quran_s:
  *     properties:
  *       surat:
