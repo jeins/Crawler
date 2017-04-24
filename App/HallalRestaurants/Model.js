@@ -5,7 +5,7 @@ const logger = require('../../Helper/Logger');
 const DisLocCalculation = require('../../Helper/DistanceLocationCalculation');
 
 let db;
-const Restaurant = function(){
+const Restaurant = function () {
     db = mongoose.model('Restaurant', new mongoose.Schema({
         id: String,
         name: String,
@@ -13,27 +13,27 @@ const Restaurant = function(){
         city: String,
         adress: {
             type: String,
-            get: (address)=>{
-                try{
+            get: (address) => {
+                try {
                     return JSON.parse(address);
-                } catch(e){
+                } catch (e) {
                     return address;
                 }
             },
-            set: (address)=>{
+            set: (address) => {
                 return JSON.stringify(address);
             }
         },
         geoLocation: {
             type: String,
-            get: (latLon)=>{
-                try{
+            get: (latLon) => {
+                try {
                     return JSON.parse(latLon);
-                } catch(e){
+                } catch (e) {
                     return latLon;
                 }
             },
-            set: (latLon)=>{
+            set: (latLon) => {
                 return JSON.stringify(latLon);
             }
         },
@@ -45,24 +45,24 @@ const Restaurant = function(){
 };
 
 Restaurant.prototype = {
-    db: ()=>{
+    db: () => {
         return db;
     },
 
-    checkIfDataExist: (name, city, country, geoLocation, cb)=>{
+    checkIfDataExist: (name, city, country, geoLocation, cb) => {
         let where = {name: name, city: city, country: country};
         let query = db.where(where);
 
         query.findOne(function (err, doc) {
-            if(err){
+            if (err) {
                 logger.log('error', 'error on check existing of restaurant, request: %s | error message: %s', JSON.stringify(where), err.message);
                 return cb(err, null);
             }
 
-            if(doc){
-                let distanceInKm = DisLocCalculation.getDistanceFromLatLonInKm(doc.geoLocation, geoLocation);
+            if (doc) {
+                //let distanceInKm = DisLocCalculation.getDistanceFromLatLonInKm(doc.geoLocation, geoLocation);
 
-                let exist = (distanceInKm > 2) ? false : true;
+                let exist = true;//(distanceInKm < 2);
 
                 cb(null, {exist: exist});
             } else cb(null, {exist: false});

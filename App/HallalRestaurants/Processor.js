@@ -3,28 +3,28 @@
 const async = require('async');
 
 const processors = [
-	'ZabihahProcessor'
+    'ZabihahProcessor'
 ];
 
-exports.run = ()=>{
-    async.map(processors, (processor, cb)=>{
-        require('./'+processor).run(cb);
-    }, (error, result)=>{
-        if(error){
+exports.run = () => {
+    async.map(processors, (processor, cb) => {
+        require('./' + processor).run(cb);
+    }, (error, result) => {
+        if (error) {
             console.log(error.message);
-        } else{
+        } else {
             console.log(result);
         }
     });
 };
 
-exports.tracker = ()=>{
-    async.map(processors, (processor, cb)=>{
-        require('./'+processor).tracker(cb);
-    }, (error, result)=>{
-        if(error){
+exports.tracker = () => {
+    async.map(processors, (processor, cb) => {
+        require('./' + processor).tracker(cb);
+    }, (error, result) => {
+        if (error) {
             console.log(error.message);
-        } else{
+        } else {
             console.log(result);
         }
     });
