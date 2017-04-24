@@ -123,6 +123,12 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                 let $ = cheerio.load(html);
                 let result = {};
 
+                if($('script[type="text/javascript"]').first().text().includes('mob/404')){
+                    logger.log('warn', 'site not found, url: %s', url);
+
+                    return cb3(null, false);
+                }
+
                 let objLdApp = JSON.parse($('script[type="application/ld+json"]').text());
                 $('script[type="text/javascript"]').each((i, script) => {
                     script = $(script).text();
