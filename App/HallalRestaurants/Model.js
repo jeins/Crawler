@@ -49,8 +49,8 @@ Restaurant.prototype = {
         return db;
     },
 
-    checkIfDataExist: (name, city, country, geoLocation, cb) => {
-        let where = {name: name, city: city, country: country};
+    checkIfDataExist: (name, city, country, geoLocation, url, cb) => {
+        let where = {name: name, city: city, country: country, url: url};
         let query = db.where(where);
 
         query.findOne(function (err, doc) {

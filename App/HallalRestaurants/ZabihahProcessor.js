@@ -148,7 +148,7 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                 result.crawledAt = moment().toISOString();
                 result.otherInfo = JSON.stringify(objLdApp);
 
-                Model.checkIfDataExist(result.name, result.city, result.country, result.geoLocation, (err, res) => {
+                Model.checkIfDataExist(result.name, result.city, result.country, result.geoLocation, result.url, (err, res) => {
                     if (!res.exist) {
                         let newRestaurant = Model.db()(result);
 
