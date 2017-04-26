@@ -62,7 +62,6 @@ router.get('/:eanCode', (req, res)=>{
 		else if(product){
 			let productStatus = checkProductStatus(product);
 			let result = {
-				eanCode: product.eanCode,
 				title: product.title,
 				imageUrl: product.imageUrl,
 				ingredient: productStatus.ingredient,
@@ -108,10 +107,6 @@ function checkProductByIngredients(ingredient){
 	});
 
 	return {ingredient: ingredient, status: status};
-}
-
-function findWord(word, str) {
-  return str.split(' ').some(function(w){return w === word})
 }
 
 function checkProductByCategoryLv(prod){

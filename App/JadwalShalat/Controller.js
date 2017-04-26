@@ -4,12 +4,16 @@ const express = require('express');
 const moment = require('moment');
 const Praytimes = require('./Praytimes');
 const router = express.Router();
+const GMap_Geocoding = require('../../Helper/GMap/Geocoding');
+
 /**
  * @swagger
  * definitions:
  *   jadwalshalat_s:
  *     properties:
  *       date:
+ *         type: string
+ *       location:
  *         type: string
  *       subuh:
  *         type: string
@@ -52,19 +56,22 @@ const router = express.Router();
  *           $ref: '#/definitions/jadwalshalat_s'
  */
 router.get('/:lat/:lon', (req, res)=>{
-	let latitude = req.params.lat;
-	let longitude = req.params.lon;
-	let times = Praytimes.getTimes(new Date(), [latitude, longitude]);
+    let latitude = req.params.lat;
+    let longitude = req.params.lon;
+    let times = Praytimes.getTimes(new Date(), [latitude, longitude]);
 
-	res.json({
-		date: moment().format('DD.MM.YYYY'),
-		subuh: times.fajr,
-		terbit: times.sunrise,
-		dzuhur: times.dhuhr,
-		ashr: times.asr,
-		maghrib: times.maghrib,
-		isya: times.isha
-	});
+    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location)=>{
+        res.json({
+            date: moment().format('DD.MM.YYYY'),
+            location: location,
+            subuh: times.fajr,
+            terbit: times.sunrise,
+            dzuhur: times.dhuhr,
+            ashr: times.asr,
+            maghrib: times.maghrib,
+            isya: times.isha
+        });
+    });
 });
 
 /**
@@ -99,23 +106,69 @@ router.get('/:lat/:lon', (req, res)=>{
  *           $ref: '#/definitions/jadwalshalat_s'
  */
 router.get('/:num/:lat/:lon', (req, res)=>{
-	let num = req.params.num;
-	let date = (num < 0) ? 
-				moment().subtract(num.replace('-', ''), 'days') : 
-				moment().add(num, 'days');
-	let latitude = req.params.lat;
-	let longitude = req.params.lon;
-	let times = Praytimes.getTimes(date.toDate(), [latitude, longitude]);
+    let num = req.params.num;
+    let date = (num < 0) ?
+        moment().subtract(num.replace('-', ''), 'days') :
+        moment().add(num, 'days');
+    let latitude = req.params.lat;
+    let longitude = req.params.lon;
+    let times = Praytimes.getTimes(date.toDate(), [latitude, longitude]);
 
-	res.json({
-		date: date.format('DD.MM.YYYY'),
-		subuh: times.fajr,
-		terbit: times.sunrise,
-		dzuhur: times.dhuhr,
-		ashr: times.asr,
-		maghrib: times.maghrib,
-		isya: times.isha
-	});
+
+    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location)=>{
+        res.json({
+            date: date.format('DD.MM.YYYY'),
+            location: location,
+            subuh: times.fajr,
+            terbit: times.sunrise,
+            dzuhur: times.dhuhr,
+            ashr: times.asr,
+            maghrib: times.maghrib,
+            isya: times.isha
+        });
+    });
+});
+
+/**
+ * @swagger
+ * /jadwalshalat/{location}:
+ *   get:
+ *     tags:
+ *       - JadwalShalat
+ *     description: menampilkan jadwal shalat berdasarkan lokasi tertentu
+ *     produces:
+ *       - application/json
+ *     parameters:
+ *       - name: location
+ *         description: lokasi bisa berupa alamat atau nama kota
+ *         in: path
+ *         required: true
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: hasil jadwal shalat
+ *         schema:
+ *           $ref: '#/definitions/jadwalshalat_s'
+ */
+router.get('/:location', (req, res)=>{
+    let location = req.params.location;
+
+    new GMap_Geocoding().getLatLonFromAddress(location, (err, geoLocation)=>{
+        let latitude = geoLocation.lat;
+        let longitude = geoLocation.lng;
+        let times = Praytimes.getTimes(new Date(), [latitude, longitude]);
+
+        res.json({
+            date: moment().format('DD.MM.YYYY'),
+            location: location,
+            subuh: times.fajr,
+            terbit: times.sunrise,
+            dzuhur: times.dhuhr,
+            ashr: times.asr,
+            maghrib: times.maghrib,
+            isya: times.isha
+        });
+    });
 });
 
 module.exports = router;
