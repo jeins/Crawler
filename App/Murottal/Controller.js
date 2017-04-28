@@ -21,12 +21,12 @@ const listSurat = ["Al-Faatihah", "Al-Baqarah", "Ali-'Imraan", "An-Nisaa'", "Al-
  *         description: list qari dan total surat
  */
 router.get('/', (req, res)=>{
-    let q = Murottal.find();
+    let q = Murottal.find({riwayat: /Ashim/});
     q.select('name totalSurat');
     q.exec((err, data)=>{
         if(err) res.status(500).send(err);
 
-        res.json(data);
+        res.json({data: data, total: _.size(data)});
     });
 });
 
