@@ -7,6 +7,28 @@ const router = express.Router();
 
 /**
  * @swagger
+ * /hadits/:
+ *   get:
+ *     tags:
+ *       - Hadits
+ *     description: menampilkan list perawi
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: perawi hadits
+ */
+router.get('/', (req, res)=>{
+	Hadits.find().distinct('perawi', (err, data)=>{
+        if(err) res.status(500).send(err);
+        else{
+        	res.json(data);
+		}
+	})
+});
+
+/**
+ * @swagger
  * /hadits/{perawi}:
  *   get:
  *     tags:
