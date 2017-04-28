@@ -8,12 +8,14 @@ const CodeCheckProcessor = require('./CodeCheck/Processor');
 const HaditsProcessor = require('./Hadits/Processor');
 const QuranProcessor = require('./Quran/Processor');
 const HallalRestaurantsProcessor = require('./HallalRestaurants/Processor');
+const MurottalProcessor = require('./Murottal/Processor');
 
 let registerProcessor = [
-    {processor: CodeCheckProcessor, run: true, tracker: true},
+    {processor: CodeCheckProcessor, run: false, tracker: false},
     {processor: HaditsProcessor, run: false, tracker: false},
-    {processor: QuranProcessor, run: false, tracker: false},
-    {processor: HallalRestaurantsProcessor, run: false, tracker: false}
+    {processor: QuranProcessor, run: false},
+    {processor: HallalRestaurantsProcessor, run: false, tracker: false},
+    {processor: MurottalProcessor, run: false}
 ];
 
 /**
@@ -24,7 +26,7 @@ exports.run = ()=>{
     let run = [];
 
     _.forEach(registerProcessor, (pro)=>{
-        if(pro.run){
+        if(_.has(pro, 'run') && pro.run){
             run.push(pro.processor);
         }
     });
@@ -47,7 +49,7 @@ exports.runTracker = ()=>{
     let tracker = [];
 
     _.forEach(registerProcessor, (pro)=>{
-        if(pro.tracker){
+        if(_.has(pro, 'tracker') && pro.tracker){
             tracker.push(pro.processor);
         }
     });

@@ -21,8 +21,6 @@ const haramIngredients = [
  * definitions:
  *   product_s:
  *     properties:
- *       eanCode:
- *         type: string
  *       title:
  *         type: string
  *       imageUrl:

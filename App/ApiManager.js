@@ -5,4 +5,5 @@ exports.run = (app)=>{
 	app.use('/product', require('./CodeCheck/Controller'));
 	app.use('/jadwalshalat', require('./JadwalShalat/Controller'));
 	app.use('/quran', require('./Quran/Controller'));
+	app.use('/murottal', require('./Murottal/Controller'));
 };
