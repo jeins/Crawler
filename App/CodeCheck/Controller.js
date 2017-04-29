@@ -9,7 +9,7 @@ const router = express.Router();
 const haramIngredients = [
 	'bier', 'rind', 'fleisch', 'wein',
 	'ethylalkohol', 'alkohol', 'e441',
-	'schweinefleisch', 'speck', 'schwein', 'gelatine',
+	'schweinefleisch', 'speck', 'schwein', 'gelatine', 'speisegelatine',
 	'e921', 'l-cystin', 'e920', 'l-cystein', 'e542', 'knochenphosphate',
 	'e471', 'e471a', 'e471b', 'e471c', 'e471d', 'e471e', 'e471f', 
 	'e422', 'glycerin', 'e407', 'carrageen', 'e392', 'rosmarinextrakt', 
