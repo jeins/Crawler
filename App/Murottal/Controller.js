@@ -61,6 +61,9 @@ router.get('/:name/:surat', (req, res)=>{
     Murottal.find({name: new RegExp(name, "i"), riwayat: /Ashim/}, (err, data)=>{
         if(err) return res.status(500).send(err);
 
+        console.log('data' + data);
+        if(_.size(data) === 0) console.log("OK")
+
         if(_.size(data) > 1){
             let name = [];
 
@@ -74,7 +77,7 @@ router.get('/:name/:surat', (req, res)=>{
                     name: name,
                     info: 'nama kurang spesifik'
                 });
-        } else{
+        } else if(_.size(data) !== 0){
             data = data[0];
             let arrAvailableSurat = data.listSurat.split(',');
 
@@ -93,6 +96,8 @@ router.get('/:name/:surat', (req, res)=>{
                     info: 'nr. surat tidak ditemukan'
                 });
             }
+        } else{
+            res.status(404).json({notFound: true, name: name, surat: listSurat[surat-1]});
         }
     });
 });
