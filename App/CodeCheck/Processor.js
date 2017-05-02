@@ -192,7 +192,7 @@ function _walkingOnCategory(categoryUrl, cb)
 
         async.mapSeries(productListUrls, (productListUrl, cb2)=>{
             _walkingOnProductList(productListUrl.url, false, 1, productListUrl.maxPage, (error, result)=>{
-                if(error) return cb(error, null);
+                if(error) return cb2(error, null);
 
                 cb2(error, result);
             });
@@ -230,7 +230,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
         request(productListUrl, (error, response, html)=>{
             if(error) {
                 logger.log('error', 'error walking on product list, url: %s | error message: %s', productListUrl, error.message);
-                return cb(error.message, null);
+                return cb2(error.message, null);
             }
 
             let $ = cheerio.load(html);
@@ -255,7 +255,7 @@ function _walkingOnProductList(productListUrl, allPage, start, end, cb)
                     cb3(error, result);
                 });
             }, (error, result)=>{
-                if(error) return cb(error, null);
+                if(error) return cb2(error, null);
 
                 cb2(error, result);
             });
@@ -481,15 +481,21 @@ function _walkingOnUpdateProduct(maxPrevDate, cb)
     let maxDate = (!maxPrevDate) ? 
                 moment().add('-100', 'days').format('ll') : 
                 moment().add('-'+maxPrevDate, 'days').format('ll');
+    let isMaxDate = true;
 
     async.mapSeries(_.times(200, String), (page, cb2)=>{
         page++;
         let url = mainUrl + '/community/letzte-aenderungen/' + page;
 
+        if(isMaxDate){
+            logger.log('warn', 'stop walking on update product');
+            return cb2(null, false);
+        }
+
         request(url, (error, response, html)=>{
             if(error) {
                 logger.log('error', 'error walking on updated product list, url: %s | error message: %s', url, error.message);
-                return cb(error.message, null);
+                return cb2(error.message, null);
             }
 
             let $ = cheerio.load(html);
@@ -521,8 +527,7 @@ function _walkingOnUpdateProduct(maxPrevDate, cb)
                 if(_isSameDate(changeOn, maxDate)){
                     logger.log('warn', 'max date is reached, last url: %s', url);
 
-                    cb(null, false);
-                    return false;
+                    isMaxDate = true;
                 }
                 cb2(err, res);
             });
