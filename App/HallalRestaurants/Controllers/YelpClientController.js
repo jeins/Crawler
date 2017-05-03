@@ -1,6 +1,6 @@
 'use strict';
 
-var request = require('request-promise');
+const request = require('request-promise');
 
 const baseUrl = 'https://api.yelp.com/v3/';
 

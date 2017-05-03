@@ -2,7 +2,7 @@
 
 /**
  * README:
- * target: https://www.zabihah.com/reg/uFbDwx42Uj
+ * Get data from Yelp API
  * TODO: add more document
  */
 
@@ -17,7 +17,6 @@ const Model = require('../Model');
 const YelpClientController = require('../Controllers/YelpClientController');
 
 const TAG = 'HallalRestaurantFromYelp';
-const mainUrl = 'https://www.yelp.de';
 const yelp = new YelpClientController();
 
 //https://www.yelp.com/developers/documentation/v2/neighborhood_list
@@ -35,7 +34,7 @@ exports.run = (cb)=>{
 
         cb(err, res);
     });
-}
+};
 
 function walkingOnCityGetAllData(cb){
 	let dataByCity = [];

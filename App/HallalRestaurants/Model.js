@@ -53,10 +53,10 @@ const Restaurant = function () {
 
 Restaurant.prototype.db = function(){
     return db;
-}
+};
 
 Restaurant.prototype.checkIfDataExist = function (name, city, country, coordinates, cb) {
-    let where = {name: name, city: city, country: country};
+    let where = {name: name, addressData: new RegExp(city), country: country};
     let query = db.where(where);
 
     query.find((err, doc)=>{
@@ -79,7 +79,7 @@ Restaurant.prototype.checkIfDataExist = function (name, city, country, coordinat
             cb(null, {exist: exist});
         } else cb(null, {exist: false});
     });
-}
+};
 
 Restaurant.prototype.checkThenSaveData = function(result, mainCb){
     async.waterfall([
@@ -105,6 +105,6 @@ Restaurant.prototype.checkThenSaveData = function(result, mainCb){
     ], (err, res) => {
         mainCb(err, res);
     });
-}
+};
 
 module.exports = new Restaurant();
