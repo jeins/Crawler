@@ -61,9 +61,6 @@ router.get('/:name/:surat', (req, res)=>{
     Murottal.find({name: new RegExp(name, "i"), riwayat: /Ashim/}, (err, data)=>{
         if(err) return res.status(500).send(err);
 
-        console.log('data' + data);
-        if(_.size(data) === 0) console.log("OK")
-
         if(_.size(data) > 1){
             let name = [];
 
