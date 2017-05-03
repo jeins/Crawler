@@ -3,11 +3,12 @@
 const async = require('async');
 
 const processors = [
-    'ZabihahProcessor'
+    'ZabihahProcessor', 
+    'YelpProcessor'
 ];
 
 exports.run = () => {
-    async.map(processors, (processor, cb) => {
+    async.mapSeries(processors, (processor, cb) => {
         require('./' + processor).run(cb);
     }, (error, result) => {
         if (error) {

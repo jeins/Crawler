@@ -7,7 +7,7 @@ const _ = require('lodash');
 const CodeCheckProcessor = require('./CodeCheck/Processor');
 const HaditsProcessor = require('./Hadits/Processor');
 const QuranProcessor = require('./Quran/Processor');
-const HallalRestaurantsProcessor = require('./HallalRestaurants/Processor');
+const HallalRestaurantsProcessor = require('./HallalRestaurants/Processors');
 const MurottalProcessor = require('./Murottal/Processor');
 
 let registerProcessor = [

@@ -12,8 +12,8 @@ const request = require('request');
 const async = require('async');
 const moment = require('moment');
 const uuid = require('uuid/v1');
-const logger = require('../../Helper/Logger');
-const Model = require('./Model');
+const logger = require('../../../Helper/Logger');
+const Model = require('../Model');
 
 const TAG = 'HallalRestaurantFromZabihah';
 const mainUrl = 'https://www.zabihah.com';
@@ -137,21 +137,25 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                             script.lastIndexOf("LatLng(") + 1,
                             script.lastIndexOf("LatLng(") + 50).match(/[+-]?([0-9]*[.])?[0-9]+/g);
 
-                        result.geoLocation = [latLon[0], latLon[1]];
+                        result.coordinates = {
+                            latitude: latLon[0],
+                            longitude: latLon[1]
+                        };
                     }
                 });
 
                 result.id = uuid();
                 result.name = objLdApp.name;
-                result.city = city;
+                result.city = (_.has(objLdApp.address, 'addressLocality')) ? objLdApp.address.addressLocality : city;
                 result.country = 'Germany'; //TODO: static?
-                result.address = objLdApp.address;
+                result.address = objLdApp.address.streetAddress + ', ' + objLdApp.address.addressLocality + ', ' + objLdApp.address.addressRegion + ', ' + objLdApp.address.postalCode;
+                result.addressData = objLdApp.address;
                 result.cuisine = objLdApp.servesCuisine;
                 result.url = url;
                 result.crawledAt = moment().toISOString();
                 result.otherInfo = JSON.stringify(objLdApp);
 
-                Model.checkIfDataExist(result.name, result.city, result.country, result.geoLocation, result.url, (err, res) => {
+                Model.checkIfDataExist(result.name, result.city, result.country, result.coordinates, (err, res) => {
                     if (!res.exist) {
                         let newRestaurant = Model.db()(result);
 
@@ -165,7 +169,7 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                             cb3(null, true);
                         });
                     } else {
-                        logger.log('info', 'restaurant information already exist, url: %s', url);
+                        logger.log('warn', 'restaurant information already exist, url: %s', url);
                         cb3(null, false);
                     }
                 });
