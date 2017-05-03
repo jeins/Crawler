@@ -70,7 +70,7 @@ Restaurant.prototype.checkIfDataExist = function (name, city, country, coordinat
             _.forEach(doc, (d)=>{
                 let distanceInKm = distanceCalc.getDistanceFromLatLonInKm(d.coordinates, coordinates);
 
-                if(distanceInKm < 0.5){
+                if(distanceInKm < 0.3){
                     exist = true;
                     return false;
                 }
