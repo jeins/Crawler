@@ -11,7 +11,7 @@ const Restaurant = function () {
         name: String,
         country: String,
         city: String,
-        adress: {
+        address: {
             type: String,
             get: (address) => {
                 try {
