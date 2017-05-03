@@ -24,19 +24,7 @@ const Restaurant = function () {
                 return JSON.stringify(address);
             }
         },
-        geoLocation: {
-            type: String,
-            get: (latLon) => {
-                try {
-                    return JSON.parse(latLon);
-                } catch (e) {
-                    return latLon;
-                }
-            },
-            set: (latLon) => {
-                return JSON.stringify(latLon);
-            }
-        },
+        geoLocation: [],
         cuisine: [],
         url: String,
         otherInfo: String,

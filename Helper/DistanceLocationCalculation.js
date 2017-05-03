@@ -10,10 +10,10 @@ DistanceLocationCalculation.prototype = {
 	},
 
 	getDistanceFromLatLonInKm: (latLonA, latLonB)=>{
-		let lat1 = latLonA.latitude;
-		let lon1 = latLonA.longitude;
-		let lat2 = latLonB.latitude;
-		let lon2 = latLonB.longitude;
+		let lat1 = latLonA[0];
+		let lon1 = latLonA[1];
+		let lat2 = latLonB[0];
+		let lon2 = latLonB[1];
 
 		var R = 6371;
 		var dLat = _degTorad(lat2-lat1);

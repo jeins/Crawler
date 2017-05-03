@@ -137,10 +137,7 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                             script.lastIndexOf("LatLng(") + 1,
                             script.lastIndexOf("LatLng(") + 50).match(/[+-]?([0-9]*[.])?[0-9]+/g);
 
-                        result.geoLocation = {
-                            latitude: latLon[0],
-                            longitude: latLon[1]
-                        };
+                        result.geoLocation = [latLon[0], latLon[1]];
                     }
                 });
 
