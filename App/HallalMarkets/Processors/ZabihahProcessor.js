@@ -149,7 +149,7 @@ function walkingOnMarketToGetInfomation(urlMarketWithCityList, cb) {
                 result.name = $('.titleBL').text();
                 result.city = city;
                 result.country = 'Germany'; //TODO: static?
-                result.address = $('.bodyLink').text();
+                result.address = $('.bodyLink').first().text();
                 result.url = url;
                 result.crawledAt = moment().toISOString();
 
