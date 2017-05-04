@@ -15,15 +15,15 @@ const uuid = require('uuid/v1');
 const logger = require('../../../Helper/Logger');
 const Model = require('../Model');
 
-const TAG = 'HallalRestaurantFromZabihah';
+const TAG = 'HallalMarketFromZabihah';
 const mainUrl = 'https://www.zabihah.com';
 const targetUrl = 'https://www.zabihah.com/reg/uFbDwx42Uj';
 
 exports.run = (mainCb) => {
     async.waterfall([
         walkingOnHomeToGetCityList,
-        walkingOnCityToGetRestaurantList,
-        walkingOnRestaurantToGetInfomation
+        walkingOnCityToGetMarketList,
+        walkingOnMarketToGetInfomation
     ], (err, res) => {
         logger.log('info', 'stop walking on $s', TAG);
 
@@ -48,10 +48,11 @@ function walkingOnHomeToGetCityList(cb) {
         let urlWithCityList = [];
 
         $('a[href*="/sub/"]').each((i, d) => {
-            let anchor = $(d).parent().find('a')
+            let anchor = $(d).parent().find('a');
+            let splitAnchor = $(anchor).attr('href').split('/');
 
             urlWithCityList[i] = {
-                url: $(anchor).attr('href'),
+                url: '/sub/' + splitAnchor[splitAnchor.length - 1] + '?t=m',
                 city: $(anchor).text()
             };
         });
@@ -61,14 +62,15 @@ function walkingOnHomeToGetCityList(cb) {
     });
 }
 
+
 /**
- * get all restaurant list from specific city
- * exp: [{city: 'Berlin', url: '/sub/Germany/Berlin/AQf3owRxQY'}]
+ * get all market list from specific city
+ * exp: [{city: 'Berlin', url: '/sub/AQf3owRxQY?t=m'}]
  * @param urlCityList
  * @param cb
  */
-function walkingOnCityToGetRestaurantList(urlCityList, cb) {
-    let restaurantsWithCityList = [];
+function walkingOnCityToGetMarketList(urlCityList, cb){
+	let marketWithCityList = [];
 
     async.mapSeries(urlCityList, (urlCity, cb2) => {
         let url = mainUrl + urlCity.url;
@@ -86,32 +88,32 @@ function walkingOnCityToGetRestaurantList(urlCityList, cb) {
                 tmpUrlList[i] = $(uri).attr('href');
             });
 
-            restaurantsWithCityList.push({
+            marketWithCityList.push({
                 city: urlCity.city,
                 urlList: tmpUrlList
             });
 
-            logger.log('info', 'finish walking on city, url: %s | total restaurants: %s', url, _.size(tmpUrlList));
+            logger.log('info', 'finish walking on city %s, url: %s | total markets: %s', urlCity.city, url, _.size(tmpUrlList));
 
-            cb2(null, restaurantsWithCityList);
+            cb2(null, marketWithCityList);
         });
     }, (err, res) => {
         logger.log('info', 'finish walking on all city');
 
-        cb(null, restaurantsWithCityList);
+        cb(null, marketWithCityList);
     });
 }
 
 /**
- * get and save all restaurant information from specific city
- * exp: [{city: 'Berlin', urlList: ['https://www.zabihah.com/biz/Berlin/Adonis-Imbiss/Gdajx3T1i7']}]
- * @param urlRestaurantWithCityList
+ * get and save all market information from specific city
+ * exp: [{city: 'Berlin', urlList: ['https://www.zabihah.com/biz/Wedding/Bolu-Wedding-3/oDdmincqZV']}]
+ * @param urlMarketWithCityList
  * @param cb
  */
-function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
-    async.mapSeries(urlRestaurantWithCityList, (urlRestaurantWithCity, cb2) => {
-        let city = urlRestaurantWithCity.city;
-        let urlList = urlRestaurantWithCity.urlList;
+function walkingOnMarketToGetInfomation(urlMarketWithCityList, cb) {
+    async.mapSeries(urlMarketWithCityList, (urlMarketWithCity, cb2) => {
+        let city = urlMarketWithCity.city;
+        let urlList = urlMarketWithCity.urlList;
 
         async.mapSeries(urlList, (url, cb3) => {
             request(url, (error, response, html) => {
@@ -129,7 +131,6 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                     return cb3(null, false);
                 }
 
-                let objLdApp = JSON.parse($('script[type="application/ld+json"]').text());
                 $('script[type="text/javascript"]').each((i, script) => {
                     script = $(script).text();
                     if (script.includes('LatLng')) {
@@ -145,34 +146,14 @@ function walkingOnRestaurantToGetInfomation(urlRestaurantWithCityList, cb) {
                 });
 
                 result.id = uuid();
-                result.name = objLdApp.name;
-                result.city = (_.has(objLdApp.address, 'addressLocality')) ? objLdApp.address.addressLocality : city;
+                result.name = $('.titleBL').text();
+                result.city = city;
                 result.country = 'Germany'; //TODO: static?
-                result.address = objLdApp.address.streetAddress + ', ' + objLdApp.address.addressLocality + ', ' + objLdApp.address.addressRegion + ', ' + objLdApp.address.postalCode;
-                result.addressData = objLdApp.address;
-                result.cuisine = objLdApp.servesCuisine;
+                result.address = $('.bodyLink').text();
                 result.url = url;
                 result.crawledAt = moment().toISOString();
-                result.otherInfo = JSON.stringify(objLdApp);
 
-                Model.checkIfDataExist(result.name, result.city, result.country, result.coordinates, (err, res) => {
-                    if (!res.exist) {
-                        let newRestaurant = Model.db()(result);
-
-                        newRestaurant.save((err) => {
-                            if (err) {
-                                logger.log('error', 'error add data to db, url: %s | error message: %s', url, error);
-                                return cb3(err, null);
-                            }
-
-                            logger.log('info', 'finish walking on restaurant information, url: %s', url);
-                            cb3(null, true);
-                        });
-                    } else {
-                        logger.log('warn', 'restaurant information already exist, url: %s', url);
-                        cb3(null, false);
-                    }
-                });
+                Model.checkThenSaveData(result, cb3);
             });
         }, cb2);
     }, cb);

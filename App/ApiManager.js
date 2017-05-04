@@ -7,4 +7,5 @@ exports.run = (app)=>{
 	app.use('/quran', require('./Quran/Router'));
 	app.use('/murottal', require('./Murottal/Router'));
 	app.use('/restaurant', require('./HallalRestaurants/Router'));
+	app.use('/market', require('./HallalMarkets/Router'));
 };

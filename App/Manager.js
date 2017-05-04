@@ -8,6 +8,7 @@ const CodeCheckProcessor = require('./CodeCheck/Processor');
 const HaditsProcessor = require('./Hadits/Processor');
 const QuranProcessor = require('./Quran/Processor');
 const HallalRestaurantsProcessor = require('./HallalRestaurants/Processors');
+const HallalMarketsProcessor = require('./HallalMarkets/Processors');
 const MurottalProcessor = require('./Murottal/Processor');
 
 let registerProcessor = [
@@ -15,6 +16,7 @@ let registerProcessor = [
     {processor: HaditsProcessor, run: false, tracker: false},
     {processor: QuranProcessor, run: false},
     {processor: HallalRestaurantsProcessor, run: false, tracker: false},
+    {processor: HallalMarketsProcessor, run: false, tracker: false},
     {processor: MurottalProcessor, run: false}
 ];
 
