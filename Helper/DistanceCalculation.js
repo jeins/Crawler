@@ -28,6 +28,15 @@ class DistanceCalculation
 		return Math.round(d*1000)/1000;
 	}
 
+	static getDistanceFromRadius(rad){
+		let res = (rad * 100).toFixed(2);
+
+		if(res >= 1) res = res.toString() + ' km';
+		else res = (1000*res).toString() + ' m';
+
+		return res;
+	}
+
 	_degTorad(deg) {
 		return deg * (Math.PI/180)
 	}

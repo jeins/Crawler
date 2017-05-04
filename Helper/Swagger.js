@@ -17,7 +17,7 @@ exports.setup = (app)=>{
 	  	// import swaggerDefinitions
 	  	swaggerDefinition: swaggerDefinition,
 	  	// path to the API docs
-	  	apis: ['./App/*/Controller.js'],
+	  	apis: ['./App/*/Router.js'],
 	};
 
 	// initialize swagger-jsdoc
