@@ -2,7 +2,7 @@
 
 const request = require('request');
 const _ = require('lodash');
-const logger = require('../logger');
+const logger = require('../Logger');
 
 class GMap_Geocoding{
 
