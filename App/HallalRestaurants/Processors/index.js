@@ -3,7 +3,7 @@
 const async = require('async');
 
 const processors = [
-    'ZabihahProcessor', 
+    'ZabihahProcessor',
     'YelpProcessor'
 ];
 

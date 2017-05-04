@@ -51,27 +51,27 @@ const listAyat = ["7", "286", "200", "176", "120", "165", "206", "75", "129", "1
  *         schema:
  *           $ref: '#/definitions/quran_s'
  */
-router.get('/:surat/:ayat', (req, res)=>{
-	let surat = req.params.surat;
-	let ayat = req.params.ayat;
-	let params = {
-		surat: surat,
-		ayat: ayat
-	};
+router.get('/:surat/:ayat', (req, res) => {
+    let surat = req.params.surat;
+    let ayat = req.params.ayat;
+    let params = {
+        surat: surat,
+        ayat: ayat
+    };
 
-	Quran.findOne(params, 'contentArab contentIndo', (err, quran)=>{
-		if(err) res.status(500).send(err);
-		else if(quran){
-			params['contentArab'] = decodeURIComponent(escape(quran.contentArab));
-			params['contentIndo'] = quran.contentIndo;
-			params['i'] = 'QS ' + listSurat[surat-1] + ': ' + ayat;
+    Quran.findOne(params, 'contentArab contentIndo', (err, quran) => {
+        if (err) res.status(500).send(err);
+        else if (quran) {
+            params['contentArab'] = decodeURIComponent(escape(quran.contentArab));
+            params['contentIndo'] = quran.contentIndo;
+            params['i'] = 'QS ' + listSurat[surat - 1] + ': ' + ayat;
 
-			res.json(params);
-		} else{
-			params['notFound'] = true;
-			res.status(404).json(params)
-		}
-	});
+            res.json(params);
+        } else {
+            params['notFound'] = true;
+            res.status(404).json(params)
+        }
+    });
 });
 
 /**
@@ -87,18 +87,18 @@ router.get('/:surat/:ayat', (req, res)=>{
  *       200:
  *         description: list surat dengan jumlah ayat
  */
-router.get('/', (req, res)=>{
-	let result = [];
+router.get('/', (req, res) => {
+    let result = [];
 
-	_.forEach(listSurat, (val, i)=>{
-		result.push({
-			nr: i+1,
-			surat: val,
-			totalAyat: listAyat[i]
-		});
-	});
+    _.forEach(listSurat, (val, i) => {
+        result.push({
+            nr: i + 1,
+            surat: val,
+            totalAyat: listAyat[i]
+        });
+    });
 
-	res.json(result);
+    res.json(result);
 });
 
 module.exports = router;

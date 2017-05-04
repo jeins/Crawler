@@ -69,8 +69,8 @@ function walkingOnHomeToGetCityList(cb) {
  * @param urlCityList
  * @param cb
  */
-function walkingOnCityToGetMarketList(urlCityList, cb){
-	let marketWithCityList = [];
+function walkingOnCityToGetMarketList(urlCityList, cb) {
+    let marketWithCityList = [];
 
     async.mapSeries(urlCityList, (urlCity, cb2) => {
         let url = mainUrl + urlCity.url;
@@ -125,7 +125,7 @@ function walkingOnMarketToGetInfomation(urlMarketWithCityList, cb) {
                 let $ = cheerio.load(html);
                 let result = {};
 
-                if($('script[type="text/javascript"]').first().text().includes('mob/404')){
+                if ($('script[type="text/javascript"]').first().text().includes('mob/404')) {
                     logger.log('warn', 'site not found, url: %s', url);
 
                     return cb3(null, false);

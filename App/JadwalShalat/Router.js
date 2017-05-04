@@ -55,12 +55,12 @@ const GMap_Geocoding = require('../../Helper/GMap/Geocoding');
  *         schema:
  *           $ref: '#/definitions/jadwalshalat_s'
  */
-router.get('/:lat/:lon', (req, res)=>{
+router.get('/:lat/:lon', (req, res) => {
     let latitude = req.params.lat;
     let longitude = req.params.lon;
     let times = Praytimes.getTimes(new Date(), [latitude, longitude]);
 
-    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location)=>{
+    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location) => {
         res.json({
             date: moment().format('DD.MM.YYYY'),
             location: location,
@@ -105,7 +105,7 @@ router.get('/:lat/:lon', (req, res)=>{
  *         schema:
  *           $ref: '#/definitions/jadwalshalat_s'
  */
-router.get('/:num/:lat/:lon', (req, res)=>{
+router.get('/:num/:lat/:lon', (req, res) => {
     let num = req.params.num;
     let date = (num < 0) ?
         moment().subtract(num.replace('-', ''), 'days') :
@@ -115,7 +115,7 @@ router.get('/:num/:lat/:lon', (req, res)=>{
     let times = Praytimes.getTimes(date.toDate(), [latitude, longitude]);
 
 
-    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location)=>{
+    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location) => {
         res.json({
             date: date.format('DD.MM.YYYY'),
             location: location,
@@ -150,10 +150,10 @@ router.get('/:num/:lat/:lon', (req, res)=>{
  *         schema:
  *           $ref: '#/definitions/jadwalshalat_s'
  */
-router.get('/:location', (req, res)=>{
+router.get('/:location', (req, res) => {
     let location = req.params.location;
 
-    new GMap_Geocoding().getLatLonFromAddress(location, (err, geoLocation)=>{
+    new GMap_Geocoding().getLatLonFromAddress(location, (err, geoLocation) => {
         let latitude = geoLocation.lat;
         let longitude = geoLocation.lng;
         let times = Praytimes.getTimes(new Date(), [latitude, longitude]);

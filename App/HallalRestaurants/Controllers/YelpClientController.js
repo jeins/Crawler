@@ -80,7 +80,7 @@ class YelpClientController {
 
 function jsonToQueryString(json) {
     return '?' +
-        Object.keys(json).map(function(key) {
+        Object.keys(json).map(function (key) {
             if (key === 'price') {
                 return key + '=' + json[key];
             } else {

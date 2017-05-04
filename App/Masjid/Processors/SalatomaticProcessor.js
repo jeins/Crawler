@@ -68,8 +68,8 @@ function walkingOnHomeToGetCityList(cb) {
  * @param urlCityList
  * @param cb
  */
-function walkingOnCityToGetMasjidList(urlCityList, cb){
-	let masjidWithCityList = [];
+function walkingOnCityToGetMasjidList(urlCityList, cb) {
+    let masjidWithCityList = [];
 
     async.mapSeries(urlCityList, (urlCity, cb2) => {
         let url = mainUrl + urlCity.url;
@@ -125,7 +125,7 @@ function walkingOnMasjidToGetInfomation(urlMasjidWithCityList, cb) {
                 let $ = cheerio.load(html);
                 let result = {};
 
-                if($('script[type="text/javascript"]').first().text().includes('mob/404') || _.isEmpty($('script[type="application/ld+json"]').text())){
+                if ($('script[type="text/javascript"]').first().text().includes('mob/404') || _.isEmpty($('script[type="application/ld+json"]').text())) {
                     logger.log('warn', 'site not found, url: %s', url);
                     return cb3(null, false);
                 }

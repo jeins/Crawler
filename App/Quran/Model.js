@@ -7,7 +7,7 @@ const schema = new mongoose.Schema({
     contentIndo: String,
     updatedAt: Date,
     createdAt: Date
-}, { timestamps: true });
+}, {timestamps: true});
 
 const Quran = mongoose.model('Quran', schema);
 

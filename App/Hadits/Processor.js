@@ -25,36 +25,38 @@ const Model = require('./Model');
 const TAG = 'HaditsFromRawahu';
 const jobFile = path.resolve(__dirname) + '/job.json';
 const mainUrl = 'http://rowahu.info/hadits/';
-const totalHadits = {bukhari: 7008, muslim: 5362, ahmad: 26363, tirmidzi: 3891,
-    nasai: 5662, darimi: 3357, malik: 1594, ibnu_majah: 4332, abu_daud: 4590};
+const totalHadits = {
+    bukhari: 7008, muslim: 5362, ahmad: 26363, tirmidzi: 3891,
+    nasai: 5662, darimi: 3357, malik: 1594, ibnu_majah: 4332, abu_daud: 4590
+};
 let job;
 
 /**
  * main
  * @param cb
  */
-exports.run = (mainCb)=>{
+exports.run = (mainCb) => {
     async.waterfall([
-        (cb)=>{
-            _job('read', (error, result)=>{
-                if(error) cb(error, null);
+        (cb) => {
+            _job('read', (error, result) => {
+                if (error) cb(error, null);
                 else cb(null, result);
             });
         },
-        (arg, cb)=>{
-            if(!_.isEmpty(job.todo)){
+        (arg, cb) => {
+            if (!_.isEmpty(job.todo)) {
                 let index = 0;
 
-                async.mapSeries(job.todo, (todo, cb2)=>{
+                async.mapSeries(job.todo, (todo, cb2) => {
                     logger.log('info', 'job start %s, method: %s', TAG, todo.method);
 
-                    let jobDoc = (error, result)=>{
+                    let jobDoc = (error, result) => {
                         todo.timestamp = moment().toISOString();
 
                         delete job.todo[index];
                         index++;
 
-                        if(error){
+                        if (error) {
                             logger.log('error', 'job failed %s, method: %s', TAG, todo.method);
                             job.failed.push(todo);
                             cb2(null, false);
@@ -66,26 +68,30 @@ exports.run = (mainCb)=>{
                         }
                     };
 
-                    switch (todo.method){
+                    switch (todo.method) {
                         case '_walkingOnPerawi':
-                            _walkingOnPerawi(todo.perawi, todo.start, todo.end, (error, result)=>{jobDoc(error, result);});
+                            _walkingOnPerawi(todo.perawi, todo.start, todo.end, (error, result) => {
+                                jobDoc(error, result);
+                            });
                             break;
                         case '_walkingOnPerawiWithHaditsNr':
-                            _walkingOnPerawiWithHaditsNr(todo.perawi, todo.nrHadits, (error, result)=>{jobDoc(error, result);});
+                            _walkingOnPerawiWithHaditsNr(todo.perawi, todo.nrHadits, (error, result) => {
+                                jobDoc(error, result);
+                            });
                             break;
                     }
-                }, (error, result)=>{
-                    if(error) cb(error, null);
+                }, (error, result) => {
+                    if (error) cb(error, null);
                     else cb(null, result);
                 });
-            } else{
+            } else {
                 logger.log('info', 'nothing to do on job %s ', TAG);
                 mainCb(null, false);
             }
         },
-        (arg, cb)=>{
-            _job('write', (error, result)=>{
-                if(error) cb(error, null);
+        (arg, cb) => {
+            _job('write', (error, result) => {
+                if (error) cb(error, null);
                 else cb(null, result);
             });
         }
@@ -98,11 +104,10 @@ exports.run = (mainCb)=>{
  * @param cb
  * @private
  */
-function _job(readOrWrite, cb)
-{
-    if(readOrWrite === 'read'){
-        fs.readFile(jobFile, (err, data)=>{
-            if(err) {
+function _job(readOrWrite, cb) {
+    if (readOrWrite === 'read') {
+        fs.readFile(jobFile, (err, data) => {
+            if (err) {
                 console.error(err.message);
                 return cb(err, null);
             }
@@ -111,13 +116,13 @@ function _job(readOrWrite, cb)
             logger.log('info', 'read job %s', TAG);
             cb(null, true);
         });
-    } else if(readOrWrite === 'write'){
-        job.todo = _.remove(job.todo, (todo)=>{
+    } else if (readOrWrite === 'write') {
+        job.todo = _.remove(job.todo, (todo) => {
             return todo === null;
         });
 
-        fs.writeFile(jobFile, JSON.stringify(job, null, 4), (err, data)=>{
-            if(err) {
+        fs.writeFile(jobFile, JSON.stringify(job, null, 4), (err, data) => {
+            if (err) {
                 console.error(err.message);
                 return cb(err, null);
             }
@@ -136,11 +141,10 @@ function _job(readOrWrite, cb)
  * @param cb
  * @private
  */
-function _walkingOnPerawi(perawi, start, end, cb)
-{
-    if(end > totalHadits[perawi]) end = totalHadits[perawi];
+function _walkingOnPerawi(perawi, start, end, cb) {
+    if (end > totalHadits[perawi]) end = totalHadits[perawi];
 
-    async.mapSeries(_getPage(start, end), (nrHadits, cb2)=>{
+    async.mapSeries(_getPage(start, end), (nrHadits, cb2) => {
         _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb2);
     }, cb);
 }
@@ -152,13 +156,12 @@ function _walkingOnPerawi(perawi, start, end, cb)
  * @param cb
  * @private
  */
-function _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb)
-{
+function _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb) {
     let url = mainUrl + perawi + '/' + nrHadits;
     logger.log('info', 'start walking to get hadits, perawi: %s | nrHadits: %s | url: %s', perawi, nrHadits, url);
 
-    request(url, (error, response, html)=>{
-        if(error) {
+    request(url, (error, response, html) => {
+        if (error) {
             logger.log('error', 'error walking on get hadits, url: %s | error message: %s', url, error.message);
             return cb(error.message, null);
         }
@@ -173,8 +176,8 @@ function _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb)
         result.contentIndo = _clean($(content).find('.content__translate').text());
 
         let addHadits = Model(result);
-        addHadits.save((err)=>{
-            if(err){
+        addHadits.save((err) => {
+            if (err) {
                 logger.log('error', 'error add data to db, url: %s | error message: %s', url, error.message);
                 return cb(err.message, null);
             }
@@ -186,20 +189,17 @@ function _walkingOnPerawiWithHaditsNr(perawi, nrHadits, cb)
     });
 }
 
-function _getPage(start, end)
-{
+function _getPage(start, end) {
     let page = [];
-    for(let i=start; i <= end; i++) page.push(i);
+    for (let i = start; i <= end; i++) page.push(i);
 
     return page;
 }
 
-function _clean(str)
-{
-    return str.replace(/(\r\n|\n|\r|\t)/gm,"").trim();
+function _clean(str) {
+    return str.replace(/(\r\n|\n|\r|\t)/gm, "").trim();
 }
 
-function _encodeUtf8(s)
-{
+function _encodeUtf8(s) {
     return unescape(encodeURIComponent(s));
 }

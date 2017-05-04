@@ -30,7 +30,7 @@ const router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
-  *       - name: total
+ *       - name: total
  *         description: jumlah data yang ingin ditampilkan
  *         in: path
  *         required: true
@@ -51,45 +51,46 @@ const router = express.Router();
  *         schema:
  *           $ref: '#/definitions/masjid_info'
  */
-router.get('/:total/:lat/:lon', (req, res)=>{
-	let maxDistance = 100;
-	let latitude = req.params.lat;
-	let longitude = req.params.lon;
-	let total = req.params.total;
+router.get('/:total/:lat/:lon', (req, res) => {
+    let maxDistance = 100;
+    let latitude = req.params.lat;
+    let longitude = req.params.lon;
+    let total = req.params.total;
 
-	Masjid.aggregate([
-		    {
-		    	"$geoNear": {
-		    		"near": [Number(latitude), Number(longitude)],
-		    		"num": Number(total),
-		    		"maxDistance": maxDistance,
-		    		"distanceField": "calculated"
-		    	}
-		    }, 
-			{
-		    	"$sort": {
-		    		"calculated": 1
-		    	}
-		    }
-		], 
-		(err, data)=>{
-	        if(err) res.status(500).send(err);
-	        else{
-	        	let result = [];
+    Masjid.aggregate([
+            {
+                "$geoNear": {
+                    "near": [Number(latitude), Number(longitude)],
+                    "num": Number(total),
+                    "maxDistance": maxDistance,
+                    "distanceField": "calculated"
+                }
+            },
+            {
+                "$sort": {
+                    "calculated": 1
+                }
+            }
+        ],
+        (err, data) => {
+            if (err) res.status(500).send(err);
+            else {
+                let result = [];
 
-	        	_.forEach(data, (d)=>{
-	        		result.push({
-		        		name: d.name,
-		        		address: d.address,
-		        		distance: DistanceCalculation.getDistanceFromRadius(d.calculated),
-		        		url: d.url
-		        	});
-	        	});
+                _.forEach(data, (d) => {
+                    result.push({
+                        name: d.name,
+                        address: d.address,
+                        distance: DistanceCalculation.getDistanceFromRadius(d.calculated),
+                        url: d.url,
+                        coordinates: d.coordinates
+                    });
+                });
 
-	        	res.json(result);
-			}
-		}
-	);
+                res.json(result);
+            }
+        }
+    );
 });
 
 module.exports = router;

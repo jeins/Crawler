@@ -26,21 +26,21 @@ let registerProcessor = [
  * register the processor
  * the default function to run the processor is run(cb);
  */
-exports.run = ()=>{
+exports.run = () => {
     let run = [];
 
-    _.forEach(registerProcessor, (pro)=>{
-        if(_.has(pro, 'run') && pro.run){
+    _.forEach(registerProcessor, (pro) => {
+        if (_.has(pro, 'run') && pro.run) {
             run.push(pro.processor);
         }
     });
 
-    async.map(run, (processor, cb)=>{
+    async.map(run, (processor, cb) => {
         processor.run(cb);
-    }, (error, result)=>{
-        if(error){
+    }, (error, result) => {
+        if (error) {
             console.log(error.message);
-        } else{
+        } else {
             console.log(result);
         }
     });
@@ -49,23 +49,23 @@ exports.run = ()=>{
 /**
  * register the tracker cron job
  */
-exports.runTracker = ()=>{
+exports.runTracker = () => {
     let tracker = [];
 
-    _.forEach(registerProcessor, (pro)=>{
-        if(_.has(pro, 'tracker') && pro.tracker){
+    _.forEach(registerProcessor, (pro) => {
+        if (_.has(pro, 'tracker') && pro.tracker) {
             tracker.push(pro.processor);
         }
     });
 
-    async.map(tracker, (processor, cb)=>{
-        cron.job("0 0 */8 * * *", ()=>{
+    async.map(tracker, (processor, cb) => {
+        cron.job("0 0 */8 * * *", () => {
             processor.tracker(cb);
         }).start();
-    }, (error, result)=>{
-        if(error){
+    }, (error, result) => {
+        if (error) {
             console.log(error.message);
-        } else{
+        } else {
             console.log(result);
         }
     });

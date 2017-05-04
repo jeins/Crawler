@@ -20,11 +20,11 @@ const listSurat = ["Al-Faatihah", "Al-Baqarah", "Ali-'Imraan", "An-Nisaa'", "Al-
  *       200:
  *         description: list qari dan total surat
  */
-router.get('/', (req, res)=>{
+router.get('/', (req, res) => {
     let q = Murottal.find({riwayat: /Ashim/});
     q.select('name totalSurat');
-    q.exec((err, data)=>{
-        if(err) res.status(500).send(err);
+    q.exec((err, data) => {
+        if (err) res.status(500).send(err);
 
         res.json({data: data, total: _.size(data)});
     });
@@ -54,17 +54,17 @@ router.get('/', (req, res)=>{
  *       200:
  *         description: hasil
  */
-router.get('/:name/:surat', (req, res)=>{
+router.get('/:name/:surat', (req, res) => {
     let name = req.params.name;
     let surat = req.params.surat;
 
-    Murottal.find({name: new RegExp(name, "i"), riwayat: /Ashim/}, (err, data)=>{
-        if(err) return res.status(500).send(err);
+    Murottal.find({name: new RegExp(name, "i"), riwayat: /Ashim/}, (err, data) => {
+        if (err) return res.status(500).send(err);
 
-        if(_.size(data) > 1){
+        if (_.size(data) > 1) {
             let name = [];
 
-            _.forEach(data, (d)=>{
+            _.forEach(data, (d) => {
                 name.push(d.name);
             });
 
@@ -74,18 +74,18 @@ router.get('/:name/:surat', (req, res)=>{
                     name: name,
                     info: 'nama kurang spesifik'
                 });
-        } else if(_.size(data) !== 0){
+        } else if (_.size(data) !== 0) {
             data = data[0];
             let arrAvailableSurat = data.listSurat.split(',');
 
-            if(_.includes(arrAvailableSurat, surat)){
+            if (_.includes(arrAvailableSurat, surat)) {
                 res.json({
                     success: true,
                     name: data.name,
-                    surat: listSurat[surat-1],
+                    surat: listSurat[surat - 1],
                     url: data.url + '/' + ('000' + surat).substr(-3) + '.mp3'
                 });
-            } else{
+            } else {
                 res.json({
                     success: false,
                     name: data.name,
@@ -93,8 +93,8 @@ router.get('/:name/:surat', (req, res)=>{
                     info: 'nr. surat tidak ditemukan'
                 });
             }
-        } else{
-            res.status(404).json({notFound: true, name: name, surat: listSurat[surat-1]});
+        } else {
+            res.status(404).json({notFound: true, name: name, surat: listSurat[surat - 1]});
         }
     });
 });

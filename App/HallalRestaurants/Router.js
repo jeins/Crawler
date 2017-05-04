@@ -18,7 +18,7 @@ const router = express.Router();
  *         type: string
  *       distance:
  *         type: string
-  *   restaurant_lokasi:
+ *   restaurant_lokasi:
  *     properties:
  *       name:
  *         type: string
@@ -38,7 +38,7 @@ const router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
-  *       - name: str
+ *       - name: str
  *         description: string bisa berupa nama restaurant atau alamat
  *         in: path
  *         required: true
@@ -49,40 +49,40 @@ const router = express.Router();
  *         schema:
  *           $ref: '#/definitions/restaurant_lokasi'
  */
- router.get('/:str', (req, res)=>{
- 	let str = new RegExp(req.params.str, "i");
+router.get('/:str', (req, res) => {
+    let str = new RegExp(req.params.str, "i");
 
- 	Restaurant.find({ $or:[ {'name': str}, {'address': str}, {'addressData': str} ]})
- 			  .select('name address coordinates')
- 			  .exec((err, data)=>{
-			        if(err) return res.status(500).send(err);
+    Restaurant.find({$or: [{'name': str}, {'address': str}, {'addressData': str}]})
+        .select('name address coordinates')
+        .exec((err, data) => {
+            if (err) return res.status(500).send(err);
 
-			        if(_.size(data) > 1){
-			        	let result = [];
+            if (_.size(data) > 1) {
+                let result = [];
 
-			        	_.forEach(data, (d)=>{
-			        		result.push({name: d.name, address: d.address});
-			        	})
+                _.forEach(data, (d) => {
+                    result.push({name: d.name, address: d.address});
+                });
 
-			        	res.json({
-			        		success: false,
-			        		data: result,
-			        		info: 'menemukan banyak nama, masukkan alamat agar lebih jelas'
-			        	});
-			        } else if(_.size(data) === 1){
-			        	data = data[0];
-			        	res.json({
-			        		success: true,
-			        		name: data.name, 
-			        		address: data.address,
-			        		latitude: data.coordinates.latitude,
-			        		longitude: data.coordinates.longitude
-			        	});
-			        } else{
-			        	res.json({success: false, info: 'nama restaurant / alamat tidak ditemukan'});
-			        }
-			    });
- })
+                res.json({
+                    success: false,
+                    data: result,
+                    info: 'menemukan banyak nama, masukkan alamat agar lebih jelas'
+                });
+            } else if (_.size(data) === 1) {
+                data = data[0];
+                res.json({
+                    success: true,
+                    name: data.name,
+                    address: data.address,
+                    latitude: data.coordinates.latitude,
+                    longitude: data.coordinates.longitude
+                });
+            } else {
+                res.json({success: false, info: 'nama restaurant / alamat tidak ditemukan'});
+            }
+        });
+})
 
 /**
  * @swagger
@@ -94,7 +94,7 @@ const router = express.Router();
  *     produces:
  *       - application/json
  *     parameters:
-  *       - name: total
+ *       - name: total
  *         description: jumlah data yang ingin ditampilkan
  *         in: path
  *         required: true
@@ -115,45 +115,46 @@ const router = express.Router();
  *         schema:
  *           $ref: '#/definitions/restaurant_info'
  */
-router.get('/:total/:lat/:lon', (req, res)=>{
-	let maxDistance = 100;
-	let latitude = req.params.lat;
-	let longitude = req.params.lon;
-	let total = req.params.total;
+router.get('/:total/:lat/:lon', (req, res) => {
+    let maxDistance = 100;
+    let latitude = req.params.lat;
+    let longitude = req.params.lon;
+    let total = req.params.total;
 
-	Restaurant.aggregate([
-		    {
-		    	"$geoNear": {
-		    		"near": [Number(latitude), Number(longitude)],
-		    		"num": Number(total),
-		    		"maxDistance": maxDistance,
-		    		"distanceField": "calculated"
-		    	}
-		    }, 
-			{
-		    	"$sort": {
-		    		"calculated": 1
-		    	}
-		    }
-		], 
-		(err, data)=>{
-	        if(err) res.status(500).send(err);
-	        else{
-	        	let result = [];
+    Restaurant.aggregate([
+            {
+                "$geoNear": {
+                    "near": [Number(latitude), Number(longitude)],
+                    "num": Number(total),
+                    "maxDistance": maxDistance,
+                    "distanceField": "calculated"
+                }
+            },
+            {
+                "$sort": {
+                    "calculated": 1
+                }
+            }
+        ],
+        (err, data) => {
+            if (err) res.status(500).send(err);
+            else {
+                let result = [];
 
-	        	_.forEach(data, (d)=>{
-	        		result.push({
-		        		name: d.name,
-		        		address: d.address,
-		        		distance: DistanceCalculation.getDistanceFromRadius(d.calculated),
-		        		url: d.url
-		        	});
-	        	});
+                _.forEach(data, (d) => {
+                    result.push({
+                        name: d.name,
+                        address: d.address,
+                        distance: DistanceCalculation.getDistanceFromRadius(d.calculated),
+                        url: d.url,
+                        coordinates: d.coordinates
+                    });
+                });
 
-	        	res.json(result);
-			}
-		}
-	);
+                res.json(result);
+            }
+        }
+    );
 });
 
 module.exports = router;

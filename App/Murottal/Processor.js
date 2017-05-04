@@ -10,8 +10,8 @@ class MurottalProcessor {
         this.apiUrl = 'http://mp3quran.net/api/_indonesia.php';
     }
 
-    run(cb){
-        request(this.apiUrl, (error, response, body)=>{
+    run(cb) {
+        request(this.apiUrl, (error, response, body) => {
             if (error) {
                 logger.log('error', 'error walking api m3quran, url: %s | error message: %s', this.apiUrl, error.message);
                 return cb(error.message, null);
@@ -19,7 +19,7 @@ class MurottalProcessor {
 
             body = JSON.parse(body);
 
-            async.mapSeries(body.reciters, (reciter, cb2)=>{
+            async.mapSeries(body.reciters, (reciter, cb2) => {
                 let result = {
                     name: reciter.name,
                     url: reciter.Server,

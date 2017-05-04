@@ -17,8 +17,10 @@ const gDriveTokenPath = tmpPath + 'gdrive_secret.json';
 const gDriveScopes = ['https://www.googleapis.com/auth/drive'];
 const gDriveApiVersion = 'v3';
 
-exports.uploadImg = (url, folderName, fileName, cb)=>{
-    _url = url; _fileName = fileName; _folderName = folderName;
+exports.uploadImg = (url, folderName, fileName, cb) => {
+    _url = url;
+    _fileName = fileName;
+    _folderName = folderName;
 
     try {
         fs.mkdirSync(tmpPath);
@@ -43,8 +45,7 @@ exports.uploadImg = (url, folderName, fileName, cb)=>{
  * @param callback
  * @private
  */
-function _prepareUploader(callback)
-{
+function _prepareUploader(callback) {
     let auth = new googleAuth();
     let oauth2Client = new auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
@@ -53,9 +54,9 @@ function _prepareUploader(callback)
     );
 
     // Check if we have previously stored a token.
-    fs.readFile(gDriveTokenPath, function(err, token) {
+    fs.readFile(gDriveTokenPath, function (err, token) {
         if (err) {
-            _getNewToken(oauth2Client, (result)=>{
+            _getNewToken(oauth2Client, (result) => {
                 callback(null, result);
             });
         } else {
@@ -81,16 +82,16 @@ function _getNewToken(oauth2Client, callback) {
         input: process.stdin,
         output: process.stdout
     });
-    rl.question('Enter the code from that page here: ', function(code) {
+    rl.question('Enter the code from that page here: ', function (code) {
         rl.close();
-        oauth2Client.getToken(code, function(err, token) {
+        oauth2Client.getToken(code, function (err, token) {
             if (err) {
                 logger.log('error', 'error while trying to retrieve access token', err);
                 return;
             }
             oauth2Client.credentials = token;
-            fs.writeFile(gDriveTokenPath, JSON.stringify(token), (err)=>{
-                if(err) throw err;
+            fs.writeFile(gDriveTokenPath, JSON.stringify(token), (err) => {
+                if (err) throw err;
 
                 callback(oauth2Client);
             });
@@ -105,24 +106,23 @@ function _getNewToken(oauth2Client, callback) {
  * @param cb
  * @private
  */
-function _uploadImgToGDrive(auth, folderId, cb)
-{
-    let drive = google.drive({ version: gDriveApiVersion, auth: auth});
+function _uploadImgToGDrive(auth, folderId, cb) {
+    let drive = google.drive({version: gDriveApiVersion, auth: auth});
     drive.files.create({
         resource: {
             name: imgNameWithTyp,
             mimeType: imgTyp,
-            parents: [ folderId ]
+            parents: [folderId]
         },
         media: {
             mimeType: imgTyp,
             body: fs.createReadStream(tmpPath + imgNameWithTyp)
         }
-    }, (err, result)=>{
-        if(err){
+    }, (err, result) => {
+        if (err) {
             logger.log('error', 'error on uploading image to drive, error message: %s', err.message);
             cb(err, null);
-        } else{
+        } else {
             cb(null, auth, result.id);
         }
     });
@@ -133,10 +133,9 @@ function _uploadImgToGDrive(auth, folderId, cb)
  * @param cb
  * @private
  */
-function _downloadImageToTmp(cb)
-{
-    request.head(_url, function(err, res, body){
-        if(err){
+function _downloadImageToTmp(cb) {
+    request.head(_url, function (err, res, body) {
+        if (err) {
             return cb(err.message, null);
         }
 
@@ -144,11 +143,11 @@ function _downloadImageToTmp(cb)
         let typ = imgTyp.split('/');
         imgNameWithTyp = _fileName + '.' + typ[1];
 
-        request(_url).pipe(fs.createWriteStream(tmpPath + imgNameWithTyp)).on('close', (error, result)=>{
-            if(error){
+        request(_url).pipe(fs.createWriteStream(tmpPath + imgNameWithTyp)).on('close', (error, result) => {
+            if (error) {
                 logger.log('error', 'error on downloading image from url: %s', _url);
                 cb(err);
-            } else{
+            } else {
                 cb(null);
             }
         });
@@ -160,13 +159,12 @@ function _downloadImageToTmp(cb)
  * @param cb
  * @private
  */
-function _cleanUp(imgUrl, cb)
-{
-    fs.unlink(tmpPath + imgNameWithTyp, (err)=>{
-        if(err){
+function _cleanUp(imgUrl, cb) {
+    fs.unlink(tmpPath + imgNameWithTyp, (err) => {
+        if (err) {
             logger.log('error', 'error on removing image on tmp path, error message: %s', err.message);
             cb(err, null);
-        } else{
+        } else {
             cb(null, {done: true, imgName: imgNameWithTyp, imgUrl: imgUrl});
         }
     });
@@ -180,37 +178,37 @@ function _cleanUp(imgUrl, cb)
  * @private
  */
 function _getFolderId(auth, cb) {
-    let drive = google.drive({ version: gDriveApiVersion, auth: auth});
-    let findFolder = (callback)=>{
+    let drive = google.drive({version: gDriveApiVersion, auth: auth});
+    let findFolder = (callback) => {
         drive.files.list({
-            q: "name='"+_folderName+"' and mimeType='application/vnd.google-apps.folder'",
+            q: "name='" + _folderName + "' and mimeType='application/vnd.google-apps.folder'",
             fields: 'nextPageToken, files(id, name)',
             spaces: 'drive'
-        }, (err, res)=>{
-            if(err) callback(err, null);
+        }, (err, res) => {
+            if (err) callback(err, null);
             else callback(null, res);
         });
     };
-    let createFolder = (callback)=>{
+    let createFolder = (callback) => {
         drive.files.create({
             resource: {
                 'name': _folderName,
-                'mimeType' : 'application/vnd.google-apps.folder'
+                'mimeType': 'application/vnd.google-apps.folder'
             },
             fields: 'id'
-        }, (err, file)=>{
-            if(err) callback(err, null);
-             else callback(null, file.id);
+        }, (err, file) => {
+            if (err) callback(err, null);
+            else callback(null, file.id);
         });
     };
 
-    findFolder((err, res)=>{
-        if(err) return cb(err.message, null);
-        if(!_.isEmpty(res.files)) return cb(null, auth, res.files[0].id);
+    findFolder((err, res) => {
+        if (err) return cb(err.message, null);
+        if (!_.isEmpty(res.files)) return cb(null, auth, res.files[0].id);
 
-        createFolder((err, folderId)=>{
-            if(err) return cb(err.message, null);
-            cb (null, auth, folderId);
+        createFolder((err, folderId) => {
+            if (err) return cb(err.message, null);
+            cb(null, auth, folderId);
         });
     });
 }
@@ -222,8 +220,8 @@ function _getFolderId(auth, cb) {
  * @param cb
  * @private
  */
-function _getImageUrl(auth, imgId, cb){
-    let drive = google.drive({ version: gDriveApiVersion, auth: auth});
+function _getImageUrl(auth, imgId, cb) {
+    let drive = google.drive({version: gDriveApiVersion, auth: auth});
 
     drive.permissions.create({
         resource: {
@@ -232,7 +230,7 @@ function _getImageUrl(auth, imgId, cb){
         },
         fileId: imgId,
         fields: 'id',
-    }, (err, res)=>{
+    }, (err, res) => {
         if (err) cb(err, null);
         else cb(null, 'https://drive.google.com/open?id=' + imgId);
     });

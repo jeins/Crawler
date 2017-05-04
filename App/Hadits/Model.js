@@ -7,7 +7,7 @@ const schema = new mongoose.Schema({
     contentIndo: String,
     updatedAt: Date,
     createdAt: Date
-}, { timestamps: true });
+}, {timestamps: true});
 
 const Hadits = mongoose.model('Hadits', schema);
 

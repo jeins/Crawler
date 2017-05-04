@@ -4,9 +4,9 @@ const request = require('request');
 const _ = require('lodash');
 const logger = require('../Logger');
 
-class GMap_Geocoding{
+class GMap_Geocoding {
 
-    constructor(){
+    constructor() {
         this._apiUrl = 'https://maps.googleapis.com/maps/api/geocode/json?key=' + process.env.GOOGLE_WEB_API;
     }
 
@@ -15,7 +15,7 @@ class GMap_Geocoding{
      * @param address
      * @param cb
      */
-    getLatLonFromAddress(address, cb){
+    getLatLonFromAddress(address, cb) {
         this._requestHandler('address', address, cb);
     }
 
@@ -25,7 +25,7 @@ class GMap_Geocoding{
      * @param longitude
      * @param cb
      */
-    getAddressFromLatLon(latitude, longitude, cb){
+    getAddressFromLatLon(latitude, longitude, cb) {
         this._requestHandler('latlng', latitude + ',' + longitude, cb);
     }
 
@@ -34,7 +34,7 @@ class GMap_Geocoding{
      * @param address
      * @param cb
      */
-    getResultFromAddress(address, cb){
+    getResultFromAddress(address, cb) {
         this._requestHandler('result_address', address, cb);
     }
 
@@ -45,11 +45,11 @@ class GMap_Geocoding{
      * @param cb
      * @private
      */
-    _requestHandler(mode, value, cb){
+    _requestHandler(mode, value, cb) {
         let key = [];
         let url = this._apiUrl;
         value = encodeURIComponent(value);
-        switch (mode){
+        switch (mode) {
             case 'address':
                 url += '&address=' + value;
                 key = ['geometry', 'location'];
@@ -64,22 +64,22 @@ class GMap_Geocoding{
                 break;
         }
 
-        request(url, (error, response, body)=>{
-            if(error){
+        request(url, (error, response, body) => {
+            if (error) {
                 logger.log('error', 'on getting request to url: %s | error: %s', this._apiUrl, error.message);
                 return cb(error, null);
             }
 
             body = JSON.parse(body);
 
-            if(_.size(body.results) === 0){
+            if (_.size(body.results) === 0) {
                 logger.log('warn', 'no result found on request to url: %s', this._apiUrl);
                 return cb(null, null);
             }
 
             let result = body.results[0];
 
-            _.forEach(key, (k)=>{
+            _.forEach(key, (k) => {
                 result = result[k];
             });
 

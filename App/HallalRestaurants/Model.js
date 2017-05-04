@@ -31,13 +31,13 @@ const Restaurant = function () {
             type: [],
             get: (coordinates) => {
                 return {
-                    latitude: coordinates[0], 
+                    latitude: coordinates[0],
                     longitude: coordinates[1]
                 }
             },
             set: (coordinates) => {
                 return [
-                    Number(coordinates.latitude), 
+                    Number(coordinates.latitude),
                     Number(coordinates.longitude)
                 ];
             }
@@ -51,7 +51,7 @@ const Restaurant = function () {
     distanceCalc = new DistanceCalculation();
 };
 
-Restaurant.prototype.db = function(){
+Restaurant.prototype.db = function () {
     return db;
 };
 
@@ -59,7 +59,7 @@ Restaurant.prototype.checkIfDataExist = function (name, city, country, coordinat
     let where = {name: name, addressData: new RegExp(city), country: country};
     let query = db.where(where);
 
-    query.find((err, doc)=>{
+    query.find((err, doc) => {
         if (err) {
             logger.log('error', 'error on check existing of restaurant, request: %s | error message: %s', JSON.stringify(where), err.message);
             return cb(err, null);
@@ -67,10 +67,10 @@ Restaurant.prototype.checkIfDataExist = function (name, city, country, coordinat
 
         if (doc) {
             let exist = false;
-            _.forEach(doc, (d)=>{
+            _.forEach(doc, (d) => {
                 let distanceInKm = distanceCalc.getDistanceFromLatLonInKm(d.coordinates, coordinates);
 
-                if(distanceInKm < 0.3){
+                if (distanceInKm < 0.3) {
                     exist = true;
                     return false;
                 }
@@ -81,10 +81,10 @@ Restaurant.prototype.checkIfDataExist = function (name, city, country, coordinat
     });
 };
 
-Restaurant.prototype.checkThenSaveData = function(result, mainCb){
+Restaurant.prototype.checkThenSaveData = function (result, mainCb) {
     async.waterfall([
         async.apply(this.checkIfDataExist, result.name, result.city, result.country, result.coordinates),
-        (res, cb)=>{
+        (res, cb) => {
             if (!res.exist) {
                 let newRestaurant = db(result);
 

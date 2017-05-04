@@ -18,13 +18,13 @@ const Market = function () {
             type: [],
             get: (coordinates) => {
                 return {
-                    latitude: coordinates[0], 
+                    latitude: coordinates[0],
                     longitude: coordinates[1]
                 }
             },
             set: (coordinates) => {
                 return [
-                    Number(coordinates.latitude), 
+                    Number(coordinates.latitude),
                     Number(coordinates.longitude)
                 ];
             }
@@ -36,7 +36,7 @@ const Market = function () {
     distanceCalc = new DistanceCalculation();
 };
 
-Market.prototype.db = function(){
+Market.prototype.db = function () {
     return db;
 };
 
@@ -44,7 +44,7 @@ Market.prototype.checkIfDataExist = function (name, city, country, coordinates, 
     let where = {name: name, city: city, country: country};
     let query = db.where(where);
 
-    query.find((err, doc)=>{
+    query.find((err, doc) => {
         if (err) {
             logger.log('error', 'error on check existing of market, request: %s | error message: %s', JSON.stringify(where), err.message);
             return cb(err, null);
@@ -52,10 +52,10 @@ Market.prototype.checkIfDataExist = function (name, city, country, coordinates, 
 
         if (doc) {
             let exist = false;
-            _.forEach(doc, (d)=>{
+            _.forEach(doc, (d) => {
                 let distanceInKm = distanceCalc.getDistanceFromLatLonInKm(d.coordinates, coordinates);
 
-                if(distanceInKm < 0.3){
+                if (distanceInKm < 0.3) {
                     exist = true;
                     return false;
                 }
@@ -66,10 +66,10 @@ Market.prototype.checkIfDataExist = function (name, city, country, coordinates, 
     });
 };
 
-Market.prototype.checkThenSaveData = function(result, mainCb){
+Market.prototype.checkThenSaveData = function (result, mainCb) {
     async.waterfall([
         async.apply(this.checkIfDataExist, result.name, result.city, result.country, result.coordinates),
-        (res, cb)=>{
+        (res, cb) => {
             if (!res.exist) {
                 let newRestaurant = db(result);
 
