@@ -2,6 +2,7 @@
 
 const request = require('request');
 const _ = require('lodash');
+const logger = require('../logger');
 
 class GMap_Geocoding{
 
@@ -29,6 +30,15 @@ class GMap_Geocoding{
     }
 
     /**
+     * get all results from address
+     * @param address
+     * @param cb
+     */
+    getResultFromAddress(address, cb){
+        this._requestHandler('result_address', address, cb);
+    }
+
+    /**
      *
      * @param mode
      * @param value
@@ -37,25 +47,33 @@ class GMap_Geocoding{
      */
     _requestHandler(mode, value, cb){
         let key = [];
+        let url = this._apiUrl;
+        value = encodeURIComponent(value);
         switch (mode){
             case 'address':
-                this._apiUrl += '&address=' + value;
+                url += '&address=' + value;
                 key = ['geometry', 'location'];
                 break;
             case 'latlng':
-                this._apiUrl += '&latlng=' + value;
+                url += '&latlng=' + value;
                 key = ['formatted_address'];
+                break;
+            case 'result_address':
+                url += '&address=' + value;
+                key = [];
                 break;
         }
 
-        request(this._apiUrl, (error, response, body)=>{
+        request(url, (error, response, body)=>{
             if(error){
+                logger.log('error', 'on getting request to url: %s | error: %s', this._apiUrl, error.message);
                 return cb(error, null);
             }
 
             body = JSON.parse(body);
 
             if(_.size(body.results) === 0){
+                logger.log('warn', 'no result found on request to url: %s', this._apiUrl);
                 return cb(null, null);
             }
 

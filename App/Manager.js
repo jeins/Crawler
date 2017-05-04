@@ -10,14 +10,16 @@ const QuranProcessor = require('./Quran/Processor');
 const HallalRestaurantsProcessor = require('./HallalRestaurants/Processors');
 const HallalMarketsProcessor = require('./HallalMarkets/Processors');
 const MurottalProcessor = require('./Murottal/Processor');
+const MasjidProcessor = require('./Masjid/Processors');
 
 let registerProcessor = [
     {processor: CodeCheckProcessor, run: false, tracker: false},
     {processor: HaditsProcessor, run: false, tracker: false},
     {processor: QuranProcessor, run: false},
-    {processor: HallalRestaurantsProcessor, run: false, tracker: false},
-    {processor: HallalMarketsProcessor, run: false, tracker: false},
-    {processor: MurottalProcessor, run: false}
+    {processor: HallalRestaurantsProcessor, run: false},
+    {processor: HallalMarketsProcessor, run: false},
+    {processor: MurottalProcessor, run: false},
+    {processor: MasjidProcessor, run: false}
 ];
 
 /**

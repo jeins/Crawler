@@ -2,7 +2,7 @@
 
 /**
  * README:
- * target: https://www.zabihah.com/reg/uFbDwx42Uj
+ * target: https://www.salatomatic.com/reg/uFbDwx42Uj
  * TODO: add more document
  */
 
@@ -15,15 +15,15 @@ const uuid = require('uuid/v1');
 const logger = require('../../../Helper/Logger');
 const Model = require('../Model');
 
-const TAG = 'HallalMarketFromZabihah';
-const mainUrl = 'https://www.zabihah.com';
-const targetUrl = 'https://www.zabihah.com/reg/uFbDwx42Uj';
+const TAG = 'MasjidFromSalatomatic';
+const mainUrl = 'https://www.salatomatic.com';
+const targetUrl = 'https://www.salatomatic.com/reg/uFbDwx42Uj';
 
 exports.run = (mainCb) => {
     async.waterfall([
         walkingOnHomeToGetCityList,
-        walkingOnCityToGetMarketList,
-        walkingOnMarketToGetInfomation
+        walkingOnCityToGetMasjidList,
+        walkingOnMasjidToGetInfomation
     ], (err, res) => {
         logger.log('info', 'stop walking on %s', TAG);
 
@@ -49,10 +49,9 @@ function walkingOnHomeToGetCityList(cb) {
 
         $('a[href*="/sub/"]').each((i, d) => {
             let anchor = $(d).parent().find('a');
-            let splitAnchor = $(anchor).attr('href').split('/');
 
             urlWithCityList[i] = {
-                url: '/sub/' + splitAnchor[splitAnchor.length - 1] + '?t=m',
+                url: $(anchor).attr('href'),
                 city: $(anchor).text()
             };
         });
@@ -64,13 +63,13 @@ function walkingOnHomeToGetCityList(cb) {
 
 
 /**
- * get all market list from specific city
- * exp: [{city: 'Berlin', url: '/sub/AQf3owRxQY?t=m'}]
+ * get all masjid list from specific city
+ * exp: [{city: 'Berlin', url: '/spc/Berlin/Ensar-Moschee-Cami/iVg4DLyb7l'}]
  * @param urlCityList
  * @param cb
  */
-function walkingOnCityToGetMarketList(urlCityList, cb){
-	let marketWithCityList = [];
+function walkingOnCityToGetMasjidList(urlCityList, cb){
+	let masjidWithCityList = [];
 
     async.mapSeries(urlCityList, (urlCity, cb2) => {
         let url = mainUrl + urlCity.url;
@@ -88,49 +87,50 @@ function walkingOnCityToGetMarketList(urlCityList, cb){
                 tmpUrlList[i] = $(uri).attr('href');
             });
 
-            marketWithCityList.push({
+            masjidWithCityList.push({
                 city: urlCity.city,
                 urlList: tmpUrlList
             });
 
-            logger.log('info', 'finish walking on city %s, url: %s | total markets: %s', urlCity.city, url, _.size(tmpUrlList));
+            logger.log('info', 'finish walking on city %s, url: %s | total masjid: %s', urlCity.city, url, _.size(tmpUrlList));
 
-            cb2(null, marketWithCityList);
+            cb2(null, masjidWithCityList);
         });
     }, (err, res) => {
         logger.log('info', 'finish walking on all city');
 
-        cb(null, marketWithCityList);
+        cb(null, masjidWithCityList);
     });
 }
 
 /**
- * get and save all market information from specific city
- * exp: [{city: 'Berlin', urlList: ['https://www.zabihah.com/biz/Wedding/Bolu-Wedding-3/oDdmincqZV']}]
- * @param urlMarketWithCityList
+ * get and save all masjid information from specific city
+ * exp: [{city: 'Berlin', urlList: ['/spc/Berlin/Ensar-Moschee-Cami/iVg4DLyb7l']}]
+ * @param urlMasjidWithCityList
  * @param cb
  */
-function walkingOnMarketToGetInfomation(urlMarketWithCityList, cb) {
-    async.mapSeries(urlMarketWithCityList, (urlMarketWithCity, cb2) => {
-        let city = urlMarketWithCity.city;
-        let urlList = urlMarketWithCity.urlList;
+function walkingOnMasjidToGetInfomation(urlMasjidWithCityList, cb) {
+    async.mapSeries(urlMasjidWithCityList, (urlMasjidWithCity, cb2) => {
+        let city = urlMasjidWithCity.city;
+        let urlList = urlMasjidWithCity.urlList;
 
         async.mapSeries(urlList, (url, cb3) => {
+            url = mainUrl + url;
             request(url, (error, response, html) => {
                 if (error) {
-                    logger.log('error', 'error walking on market, url: %s | error message: %s', url, error.message);
+                    logger.log('error', 'error walking on masjid, url: %s | error message: %s', url, error.message);
                     return cb3(error.message, null);
                 }
 
                 let $ = cheerio.load(html);
                 let result = {};
 
-                if($('script[type="text/javascript"]').first().text().includes('mob/404')){
+                if($('script[type="text/javascript"]').first().text().includes('mob/404') || _.isEmpty($('script[type="application/ld+json"]').text())){
                     logger.log('warn', 'site not found, url: %s', url);
-
                     return cb3(null, false);
                 }
 
+                let objLdApp = JSON.parse($('script[type="application/ld+json"]').text());
                 $('script[type="text/javascript"]').each((i, script) => {
                     script = $(script).text();
                     if (script.includes('LatLng')) {
@@ -147,9 +147,11 @@ function walkingOnMarketToGetInfomation(urlMarketWithCityList, cb) {
 
                 result.id = uuid();
                 result.name = $('.titleBL').text();
-                result.city = city;
+                result.city = (_.has(objLdApp.address, 'addressLocality')) ? objLdApp.address.addressLocality : city;
                 result.country = 'Germany'; //TODO: static?
-                result.address = $('.bodyLink').text();
+                result.plz = objLdApp.address.postalCode;
+                result.street = objLdApp.address.streetAddress;
+                result.address = result.street + ', ' + result.plz + ', ' + objLdApp.address.addressLocality;
                 result.url = url;
                 result.crawledAt = moment().toISOString();
 
