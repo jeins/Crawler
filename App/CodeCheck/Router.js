@@ -130,21 +130,16 @@ function checkProductByCategoryLv(prod) {
 function highlightHaramIngredients(ingredient, haramIngredient) {
     let hightlight = '*';
     let tmpSplit = ingredient.split(',');
-    let tmpHarapIngredients = [];
 
     _.forEach(tmpSplit, (text, i) => {
         text = text.trim().replace('.', '');
 
         if (_.includes(text, haramIngredient) && !_.includes(text, hightlight)) {
             tmpSplit[i] = hightlight + text + hightlight;
-            tmpHarapIngredients[i] = text;
         } else tmpSplit[i] = text;
     });
 
-    return {
-        haramIngredients: tmpHarapIngredients,
-        ingredients: tmpSplit.join(', ')
-    };
+    return tmpSplit.join(', ');
 }
 
 module.exports = router;
