@@ -98,7 +98,7 @@ function checkProductByIngredients(ingredient) {
     _.forEach(haramIngredients, (haramIngredient) => {
         let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(ingredient);
 
-        if (_.includes(ingredient, haramIngredient) && isSingleWord) {
+        if ((_.includes(ingredient, haramIngredient) && isSingleWord) || _.includes(ingredient, 'fleisch')) {
             status = 'haram';
             ingredient = highlightHaramIngredients(ingredient, haramIngredient);
         }
