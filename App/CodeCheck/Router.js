@@ -75,6 +75,23 @@ router.get('/:eanCode', (req, res) => {
     });
 });
 
+/**
+ * @swagger
+ * /product/haram:
+ *   get:
+ *     tags:
+ *       - ProductInfo
+ *     description: menampilkan informasi list komposisi haram
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: haram komposisi
+ */
+router.get('/haram', (req, res)=>{
+    res.json(haramIngredients);
+});
+
 function checkProductStatus(prod) {
     let result = {status: 'hallal', ingredient: ''};
     let checkHandler = [
