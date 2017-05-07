@@ -33,6 +33,23 @@ const haramIngredients = [
 
 /**
  * @swagger
+ * /product/haram:
+ *   get:
+ *     tags:
+ *       - ProductInfo
+ *     description: menampilkan informasi list komposisi haram
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: haram komposisi
+ */
+router.get('/haram', (req, res)=>{
+    res.json(haramIngredients);
+});
+
+/**
+ * @swagger
  * /product/{eanCode}:
  *   get:
  *     tags:
@@ -73,23 +90,6 @@ router.get('/:eanCode', (req, res) => {
             res.status(404).json({notFound: true, eanCode: eanCode});
         }
     });
-});
-
-/**
- * @swagger
- * /product/haram:
- *   get:
- *     tags:
- *       - ProductInfo
- *     description: menampilkan informasi list komposisi haram
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: haram komposisi
- */
-router.get('/haram', (req, res)=>{
-    res.json(haramIngredients);
 });
 
 function checkProductStatus(prod) {
