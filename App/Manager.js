@@ -59,7 +59,7 @@ exports.runTracker = () => {
     });
 
     async.map(tracker, (processor, cb) => {
-        cron.job("0 0 */8 * * *", () => {
+        cron.job("0 0 */6 * * *", () => {
             processor.tracker(cb);
         }).start();
     }, (error, result) => {

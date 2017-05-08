@@ -5,6 +5,7 @@ const _ = require('lodash');
 const logger = require('../../Helper/Logger');
 const Product = require('./Model');
 const router = express.Router();
+const ProductController = require('./Controllers/ProductController');
 
 const haramIngredients = [
     'bier', 'rind', 'fleisch', 'wein',
@@ -75,34 +76,49 @@ router.get('/:eanCode', (req, res) => {
     Product.findOne({eanCode: eanCode}, (err, product) => {
         if (err) res.status(500).send(err);
         else if (product) {
-            let productStatus = checkProductStatus(product);
-            let result = {
-                title: product.title,
-                imageUrl: product.imageUrl,
-                ingredient: productStatus.ingredient,
-                status: productStatus.status
-            };
-
-            if (productStatus.haramCategory) result.haramCategory = productStatus.haramCategory;
-
-            res.json(result);
+            res.json(getJsonTemplate(product));
         } else {
-            res.status(404).json({notFound: true, eanCode: eanCode});
+            ProductController.directSearchToCodeCheck(eanCode, (err, prod)=>{
+                if(err) res.status(500).send(err);
+
+                if(prod){
+                    res.json(getJsonTemplate(prod));
+                } else{
+                    res.status(404).json({notFound: true, eanCode: eanCode});
+                }
+            });
         }
     });
 });
 
+function getJsonTemplate(product) {
+    let productStatus = checkProductStatus(product);
+    let result = {
+        title: product.title,
+        imageUrl: product.imageUrl,
+        ingredient: productStatus.ingredient,
+        status: productStatus.status
+    };
+
+    if (productStatus.haramCategory) result.haramCategory = productStatus.haramCategory;
+    if (productStatus.furtherInformation) result.furtherInformation = productStatus.furtherInformation;
+
+    return result;
+}
+
 function checkProductStatus(prod) {
     let result = {status: 'hallal', ingredient: ''};
     let checkHandler = [
+        checkProductByCategoryLv(prod),
         checkProductByIngredients(prod.ingredient),
-        checkProductByCategoryLv(prod)
+        checkProductByFurtherInformation(prod.otherInfo)
     ];
 
     _.forEach(checkHandler, (val) => {
         if (val.status === 'haram') result.status = val.status;
         if (val.ingredient) result.ingredient = val.ingredient;
         if (val.haramCategory) result.haramCategory = val.haramCategory;
+        if (val.furtherInformation) result.furtherInformation = val.furtherInformation;
     });
 
     return result;
@@ -142,6 +158,24 @@ function checkProductByCategoryLv(prod) {
     });
 
     return {status: status, haramCategory: haramCat};
+}
+
+function checkProductByFurtherInformation(furtherInformation){
+    let status = 'hallal';
+    furtherInformation = furtherInformation.toLowerCase();
+
+    _.forEach(haramIngredients, (haramIngredient) => {
+        let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(furtherInformation);
+
+        if ((_.includes(furtherInformation, haramIngredient) && isSingleWord) || _.includes(furtherInformation, 'fleisch')) {
+            status = 'haram';
+            furtherInformation = highlightHaramIngredients(furtherInformation, haramIngredient);
+        }
+    });
+
+    if(status === 'hallal') furtherInformation = '';
+
+    return {status: status, furtherInformation: furtherInformation};
 }
 
 function highlightHaramIngredients(ingredient, haramIngredient) {
