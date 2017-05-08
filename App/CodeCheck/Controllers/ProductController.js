@@ -51,7 +51,7 @@ class ProductController
 	            }
 	        });
 
-	        if(_.has(result, 'ingredient')){
+	        if(result.ingredient){
 				this.createJob(productUrl, '_walkingOnProduct');
 	        }
 
