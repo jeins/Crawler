@@ -126,16 +126,19 @@ function checkProductStatus(prod) {
 
 function checkProductByIngredients(ingredient) {
     let status = 'hallal';
-    ingredient = ingredient.toLowerCase();
+    
+    if(ingredient){
+        ingredient = ingredient.toLowerCase();
 
-    _.forEach(haramIngredients, (haramIngredient) => {
-        let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(ingredient);
+        _.forEach(haramIngredients, (haramIngredient) => {
+            let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(ingredient);
 
-        if ((_.includes(ingredient, haramIngredient) && isSingleWord) || _.includes(ingredient, 'fleisch')) {
-            status = 'haram';
-            ingredient = highlightHaramIngredients(ingredient, haramIngredient);
-        }
-    });
+            if ((_.includes(ingredient, haramIngredient) && isSingleWord) || _.includes(ingredient, 'fleisch')) {
+                status = 'haram';
+                ingredient = highlightHaramIngredients(ingredient, haramIngredient);
+            }
+        });
+    }
 
     return {ingredient: ingredient, status: status};
 }
@@ -162,16 +165,19 @@ function checkProductByCategoryLv(prod) {
 
 function checkProductByFurtherInformation(furtherInformation){
     let status = 'hallal';
-    furtherInformation = furtherInformation.toLowerCase();
 
-    _.forEach(haramIngredients, (haramIngredient) => {
-        let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(furtherInformation);
+    if(furtherInformation){
+        furtherInformation = furtherInformation.toLowerCase();
 
-        if ((_.includes(furtherInformation, haramIngredient) && isSingleWord) || _.includes(furtherInformation, 'fleisch')) {
-            status = 'haram';
-            furtherInformation = highlightHaramIngredients(furtherInformation, haramIngredient);
-        }
-    });
+        _.forEach(haramIngredients, (haramIngredient) => {
+            let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(furtherInformation);
+
+            if ((_.includes(furtherInformation, haramIngredient) && isSingleWord) || _.includes(furtherInformation, 'fleisch')) {
+                status = 'haram';
+                furtherInformation = highlightHaramIngredients(furtherInformation, haramIngredient);
+            }
+        });
+    }
 
     if(status === 'hallal') furtherInformation = '';
 
