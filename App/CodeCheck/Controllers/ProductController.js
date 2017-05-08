@@ -7,8 +7,18 @@ const path = require('path');
 const _ =require('lodash');
 const cheerio = require('cheerio');
 
+const allowedProductCategories = [
+    'essen', 'getraenke', 'babynahrung', 'babygetraenke', 'baby_gesundheit',
+    'alternativmedizin', 'medikamente', 'vitamine_mineralstoffe', 'nahrungsergaenzung_aufbaunahrung'
+];
+
 class ProductController
 {
+    /**
+	 *
+     * @param eanCode
+     * @param cb
+     */
 	static directSearchToCodeCheck(eanCode, cb)
 	{
 		let searchUrl = 'http://www.codecheck.info/product.search?q=%s';
@@ -37,6 +47,10 @@ class ProductController
 		    result.secondLvCategory = urlParam[3];
 		    result.thirdLvCategory = (!urlParam[4].includes('ean_') && !urlParam[4].includes('id_')) ? urlParam[4] : '';
 
+		    if(!this._isCategoryAllowed([result.firstLvCategory, result.secondLvCategory, result.thirdLvCategory])){
+		    	return cb(null, {notAllowed: true});
+			}
+
         	$(productInfoList).find('.product-info-item').each((i, product) => {
 	            let label = $(product).find('p:nth-child(1)').text();
 	            let value = this._clean($(product).find('p:nth-child(2)').text());
@@ -59,6 +73,11 @@ class ProductController
 		});
 	}
 
+    /**
+	 *
+     * @param url
+     * @param method
+     */
 	static createJob(url, method)
 	{
 		const jobFile = path.resolve(__dirname) + '/../job.json';
@@ -97,8 +116,34 @@ class ProductController
         });
 	}
 
+    /**
+	 *
+     * @param str
+     * @returns {*|string|void|XML}
+     * @private
+     */
 	static _clean(str) {
 		return str.replace(/(\r\n|\n|\r|\t)/gm, "");
+	}
+
+    /**
+	 *
+     * @param categories
+     * @returns {boolean}
+     * @private
+     */
+	static _isCategoryAllowed(categories){
+		let isAllowed = false;
+
+		_.forEach(categories, (category)=>{
+			if(_.includes(allowedProductCategories, category)){
+				isAllowed = true;
+
+				return false;
+			}
+		});
+
+		return isAllowed;
 	}
 }
 

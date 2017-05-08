@@ -9,7 +9,7 @@ const ProductController = require('./Controllers/ProductController');
 
 const haramIngredients = [
     'bier', 'rind', 'fleisch', 'wein',
-    'ethylalkohol', 'alkohol', 'e441',
+    'ethylalkohol', 'alkohol', 'alcohol', 'e441',
     'schweinefleisch', 'speck', 'schwein', 'gelatine', 'speisegelatine',
     'e921', 'l-cystin', 'e920', 'l-cystein', 'e542', 'knochenphosphate',
     'e471', 'e471a', 'e471b', 'e471c', 'e471d', 'e471e', 'e471f',
@@ -82,7 +82,11 @@ router.get('/:eanCode', (req, res) => {
                 if(err) res.status(500).send(err);
 
                 if(prod){
-                    res.json(getJsonTemplate(prod));
+                    if(_.has(prod, 'notAllowed') && prod.notAllowed){
+                        res.json(prod);
+                    } else{
+                        res.json(getJsonTemplate(prod));
+                    }
                 } else{
                     res.status(404).json({notFound: true, eanCode: eanCode});
                 }
