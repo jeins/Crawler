@@ -1,5 +1,7 @@
 'use strict';
 
+const Authorization = require('../Middleware/Authorization');
+
 exports.run = (app) => {
     app.use('/hadits', require('./Hadits/Router'));
     app.use('/product', require('./CodeCheck/Router'));
@@ -9,4 +11,7 @@ exports.run = (app) => {
     app.use('/restaurant', require('./HallalRestaurants/Router'));
     app.use('/market', require('./HallalMarkets/Router'));
     app.use('/masjid', require('./Masjid/Router'));
+
+    // routes with middleware
+    app.use('/admin', Authorization, require('./ApiController/Router'));
 };
