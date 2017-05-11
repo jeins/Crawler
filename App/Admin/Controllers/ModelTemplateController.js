@@ -18,7 +18,7 @@ class ModelTemplateController
 
 	getTemplateWithLocation() {
 		return {
-			locationPath: '',
+			locationPath: 'masjid/market/restaurant',
 			name: '',
 			street: '',
 			plz: '',

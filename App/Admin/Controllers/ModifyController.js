@@ -4,6 +4,7 @@ const Masjid = require('../../Masjid/Model').db();
 const Market = require('../../HallalMarkets/Model').db();
 const Restaurant = require('../../HallalRestaurants/Model').db();
 const ModelTemplateController = require('./ModelTemplateController');
+const ProductStatusController = require('../../CodeCheck/Controllers/ProductStatusController');
 
 class ModifyController extends ModelTemplateController
 {
@@ -21,24 +22,31 @@ class ModifyController extends ModelTemplateController
 			case 'template':
 				let template = this.getTemplateToAddData(path);
 
-				_.isEmpty(template) ? cb(null, null) : cb(null, template);
+				_.isEmpty(template) ? cb(null, {err: 'template for selectede path not found'}) : cb(null, template);
 				break;
 			default:
-				cb(null, null);
+				cb(null, {err: 'request not allowed'});
 				break;
 		}
 	}
 
 	_updateHandler(path, data, cb){
-		cb(null, null);
+		cb(null, {err: 'request not allowed'});
 	}
 
 	_addHandler(path, data, cb){
-		cb(null, null);
+		switch(path){
+			case 'haramIngredient':
+				ProductStatusController.addHaramIngredients(data, cb);
+				break;
+			default:
+				cb(null, {err: 'request not allowed'});
+				break;
+		}
 	}
 
 	_deleteHandler(path, data, cb){
-		cb(null, null);
+		cb(null, {err: 'request not allowed'});
 	}
 }
 

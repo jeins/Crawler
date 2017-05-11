@@ -14,7 +14,7 @@ router.post('/modify', (req, res) => {
 		req.body.data,
 		(error, result)=>{
 			if(error) return res.status(500).send({allowed: true, success: false, message: error});
-			if(!result) return res.status(400).json({allowed: true, success: false, message: 'request not allowed'});
+			if(!result || result.err) return res.status(400).json({allowed: true, success: false, message: result.err});
 
 			res.json(result);
 		}
