@@ -19,10 +19,14 @@ class ProductController
      * @param eanCode
      * @param cb
      */
-	static directSearchToCodeCheck(eanCode, cb)
+	static directSearchToCodeCheck(eanCode, productUrl, cb)
 	{
-		let searchUrl = 'http://www.codecheck.info/product.search?q=%s';
-		let url = util.format(searchUrl, eanCode);
+		let url = 'http://www.codecheck.info/' + productUrl;
+
+		if(!productUrl){
+			let searchUrl = 'http://www.codecheck.info/product.search?q=%s';
+			url = util.format(searchUrl, eanCode);
+		}
 
 		request(url, (error, response, html)=>{
 			if(error){
@@ -40,6 +44,13 @@ class ProductController
 			let result = {ingredient: '', otherInfo: ''};
         	let productInfoList = $('.product-info-item-list');
         	let productUrl = $('#newAdvantage').attr('action');
+
+        	if(!productUrl){
+        		productUrl = $('.search-result').find('.title').first().find('a').attr('href');
+
+        		return this.directSearchToCodeCheck(null, productUrl, cb);
+        	}
+
         	let urlParam = productUrl.split('/');
 
         	result.title = this._clean($('.page-title-headline').find('h1').text());
@@ -47,7 +58,16 @@ class ProductController
 		    result.secondLvCategory = urlParam[3];
 		    result.thirdLvCategory = (!urlParam[4].includes('ean_') && !urlParam[4].includes('id_')) ? urlParam[4] : '';
 
-		    if(!this._isCategoryAllowed([result.firstLvCategory, result.secondLvCategory, result.thirdLvCategory])){
+		    if (urlParam[1] === 'getraenke') {
+		        result.firstLvCategory = urlParam[1];
+		        result.secondLvCategory = urlParam[2];
+
+		        if (!urlParam[3].includes('ean_') && !urlParam[3].includes('id_')) {
+		            result.thirdLvCategory = urlParam[3];
+		        }
+		    }
+
+		    if(!this._isCategoryAllowed(productUrl)){
 		    	return cb(null, {notAllowed: true});
 			}
 
@@ -132,11 +152,11 @@ class ProductController
      * @returns {boolean}
      * @private
      */
-	static _isCategoryAllowed(categories){
+	static _isCategoryAllowed(url){
 		let isAllowed = false;
 
-		_.forEach(categories, (category)=>{
-			if(_.includes(allowedProductCategories, category)){
+		_.forEach(allowedProductCategories, (category)=>{
+			if(url.includes(category)){
 				isAllowed = true;
 
 				return false;

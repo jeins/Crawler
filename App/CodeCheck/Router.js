@@ -11,10 +11,11 @@ const haramIngredients = [
     'bier', 'rind', 'fleisch', 'wein',
     'ethylalkohol', 'alkohol', 'alcohol', 'e441',
     'schweinefleisch', 'speck', 'schwein', 'gelatine', 'speisegelatine',
+    'rindfleisch', 'hunfleisch', 'hähnchenbrust',
     'e921', 'l-cystin', 'e920', 'l-cystein', 'e542', 'knochenphosphate',
     'e471', 'e471a', 'e471b', 'e471c', 'e471d', 'e471e', 'e471f',
     'e422', 'glycerin', 'e407', 'carrageen', 'e392', 'rosmarinextrakt',
-    'e120', 'cochenille', 'karminsäure'
+    'e120', 'cochenille', 'karminsäure', 'weinhaltiger'
 ];
 
 /**
@@ -76,16 +77,16 @@ router.get('/:eanCode', (req, res) => {
     Product.findOne({eanCode: eanCode}, (err, product) => {
         if (err) res.status(500).send(err);
         else if (product) {
-            res.json(getJsonTemplate(product));
+            res.json(getResults(product));
         } else {
-            ProductController.directSearchToCodeCheck(eanCode, (err, prod)=>{
+            ProductController.directSearchToCodeCheck(eanCode, null, (err, prod)=>{
                 if(err) res.status(500).send(err);
 
                 if(prod){
                     if(_.has(prod, 'notAllowed') && prod.notAllowed){
                         res.json(prod);
                     } else{
-                        res.json(getJsonTemplate(prod));
+                        res.json(getResults(prod));
                     }
                 } else{
                     res.status(404).json({notFound: true, eanCode: eanCode});
@@ -95,23 +96,20 @@ router.get('/:eanCode', (req, res) => {
     });
 });
 
-function getJsonTemplate(product) {
-    let productStatus = checkProductStatus(product);
+function getResults(product) {
     let result = {
         title: product.title,
         imageUrl: product.imageUrl,
-        ingredient: productStatus.ingredient,
-        status: productStatus.status
     };
 
-    if (productStatus.haramCategory) result.haramCategory = productStatus.haramCategory;
-    if (productStatus.furtherInformation) result.furtherInformation = productStatus.furtherInformation;
+    _.merge(result, checkProductStatus(product));
 
     return result;
 }
 
 function checkProductStatus(prod) {
     let result = {status: 'hallal', ingredient: ''};
+    let allowedKeys = ['ingredient', 'haramCategory', 'furtherInformation', 'haramIngredient'];
     let checkHandler = [
         checkProductByCategoryLv(prod),
         checkProductByIngredients(prod.ingredient),
@@ -120,9 +118,9 @@ function checkProductStatus(prod) {
 
     _.forEach(checkHandler, (val) => {
         if (val.status === 'haram') result.status = val.status;
-        if (val.ingredient) result.ingredient = val.ingredient;
-        if (val.haramCategory) result.haramCategory = val.haramCategory;
-        if (val.furtherInformation) result.furtherInformation = val.furtherInformation;
+        _.forEach(allowedKeys, (allowedKey)=>{
+            if(val[allowedKey]) result[allowedKey] = val[allowedKey];
+        });
     });
 
     return result;
@@ -130,6 +128,7 @@ function checkProductStatus(prod) {
 
 function checkProductByIngredients(ingredient) {
     let status = 'hallal';
+    let arrHaramIngredient = [];
     
     if(ingredient){
         ingredient = ingredient.toLowerCase();
@@ -137,14 +136,15 @@ function checkProductByIngredients(ingredient) {
         _.forEach(haramIngredients, (haramIngredient) => {
             let isSingleWord = new RegExp('\\b' + haramIngredient + '\\b').test(ingredient);
 
-            if ((_.includes(ingredient, haramIngredient) && isSingleWord) || _.includes(ingredient, 'fleisch')) {
+            if (_.includes(ingredient, haramIngredient) && isSingleWord) {
                 status = 'haram';
                 ingredient = highlightHaramIngredients(ingredient, haramIngredient);
+                arrHaramIngredient.push(haramIngredient);
             }
         });
     }
 
-    return {ingredient: ingredient, status: status};
+    return {ingredient: ingredient, haramIngredient: _.join(arrHaramIngredient, ', '), status: status};
 }
 
 function checkProductByCategoryLv(prod) {
@@ -189,7 +189,7 @@ function checkProductByFurtherInformation(furtherInformation){
 }
 
 function highlightHaramIngredients(ingredient, haramIngredient) {
-    let hightlight = '*';
+    let hightlight = '###';
     let tmpSplit = ingredient.split(',');
 
     _.forEach(tmpSplit, (text, i) => {
@@ -200,7 +200,7 @@ function highlightHaramIngredients(ingredient, haramIngredient) {
         } else tmpSplit[i] = text;
     });
 
-    return tmpSplit.join(', ');
+    return _.replace(_.replace(tmpSplit.join(', '), /\*/g, ''), /###/g, '*');
 }
 
 module.exports = router;
