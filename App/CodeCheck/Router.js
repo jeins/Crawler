@@ -2,7 +2,7 @@
 
 const express = require('express');
 const _ = require('lodash');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const Product = require('./Model');
 const router = express.Router();
 const ProductController = require('./Controllers/ProductController');

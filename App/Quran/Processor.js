@@ -11,7 +11,7 @@ const _ = require('lodash');
 const moment = require('moment');
 const request = require('request');
 const util = require('util');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const Model = require('./Model');
 const TAG = 'QURAN';
 

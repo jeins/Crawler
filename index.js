@@ -8,9 +8,9 @@ const fs = require('fs');
 const path = require('path');
 
 const corsMiddleware = require('./Middleware/Cors');
-const logger = require('./Helper/Logger');
-const mongoose = require('./Helper/Mongoose');
-const swagger = require('./Helper/Swagger');
+const logger = require('./Library/Logger');
+const mongoose = require('./Library/Mongoose');
+const swagger = require('./Library/Swagger');
 const AppManager = require('./App/Manager');
 const ApiManager = require('./App/ApiManager');
 
@@ -25,9 +25,16 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(errorHandler());
 app.use(corsMiddleware);
 
+/**
+ * custom setup
+ */
 mongoose.setup();
 swagger.setup(app);
 
+/**
+ * load application
+ * crawler, tracker and api
+ */
 AppManager.run();
 AppManager.runTracker();
 ApiManager.run(app);

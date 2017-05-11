@@ -2,9 +2,9 @@
 
 const mongoose = require('mongoose');
 const async = require('async');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const _ = require('lodash');
-const DistanceCalculation = require('../../Helper/DistanceCalculation');
+const DistanceCalculation = require('../../Library/DistanceCalculation');
 
 let db, distanceCalc;
 const Masjid = function () {

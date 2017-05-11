@@ -4,7 +4,7 @@ const express = require('express');
 const moment = require('moment');
 const Praytimes = require('./Praytimes');
 const router = express.Router();
-const GMap_Geocoding = require('../../Helper/GMap/Geocoding');
+const Geocoding = require('../../Library/GoogleApi/Geocoding');
 
 /**
  * @swagger
@@ -60,7 +60,7 @@ router.get('/:lat/:lon', (req, res) => {
     let longitude = req.params.lon;
     let times = Praytimes.getTimes(new Date(), [latitude, longitude]);
 
-    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location) => {
+    new Geocoding().getAddressFromLatLon(latitude, longitude, (err, location) => {
         res.json({
             date: moment().format('DD.MM.YYYY'),
             location: location,
@@ -115,7 +115,7 @@ router.get('/:num/:lat/:lon', (req, res) => {
     let times = Praytimes.getTimes(date.toDate(), [latitude, longitude]);
 
 
-    new GMap_Geocoding().getAddressFromLatLon(latitude, longitude, (err, location) => {
+    new Geocoding().getAddressFromLatLon(latitude, longitude, (err, location) => {
         res.json({
             date: date.format('DD.MM.YYYY'),
             location: location,
@@ -153,7 +153,7 @@ router.get('/:num/:lat/:lon', (req, res) => {
 router.get('/:location', (req, res) => {
     let location = req.params.location;
 
-    new GMap_Geocoding().getLatLonFromAddress(location, (err, geoLocation) => {
+    new Geocoding().getLatLonFromAddress(location, (err, geoLocation) => {
         let latitude = geoLocation.lat;
         let longitude = geoLocation.lng;
         let times = Praytimes.getTimes(new Date(), [latitude, longitude]);

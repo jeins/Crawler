@@ -1,7 +1,7 @@
 'use strict';
 
 const express = require('express');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const Hadits = require('./Model');
 const router = express.Router();
 

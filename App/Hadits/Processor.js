@@ -19,7 +19,7 @@ const moment = require('moment');
 const request = require('request');
 const cheerio = require('cheerio');
 const path = require('path');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const Model = require('./Model');
 
 const TAG = 'HaditsFromRawahu';

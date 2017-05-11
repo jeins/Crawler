@@ -12,9 +12,9 @@ const request = require('request');
 const async = require('async');
 const moment = require('moment');
 const uuid = require('uuid/v1');
-const logger = require('../../../Helper/Logger');
+const logger = require('../../../Library/Logger');
 const Model = require('../Model');
-const Geocoding = require('../../../Helper/GMap/Geocoding');
+const Geocoding = require('../../../Library/GoogleApi/Geocoding');
 
 const mainUrl = 'https://www.moscheesuche.de/';
 const TAG = 'MasjidFromMoscheeSuche';

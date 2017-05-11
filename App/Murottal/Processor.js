@@ -2,7 +2,7 @@
 
 const request = require('request');
 const async = require('async');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const Murottal = require('./Model');
 
 class MurottalProcessor {

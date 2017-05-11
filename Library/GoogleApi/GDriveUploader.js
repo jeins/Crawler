@@ -9,10 +9,10 @@ const request = require('request');
 const async = require('async');
 const readline = require('readline');
 const _ = require('lodash');
-const logger = require('./Logger');
+const logger = require('../Logger');
 
 let imgNameWithTyp, imgTyp, _url, _folderName, _fileName;
-const tmpPath = path.resolve(__dirname) + '/../.tmp/';
+const tmpPath = path.resolve(__dirname) + '/../../.tmp/';
 const gDriveTokenPath = tmpPath + 'gdrive_secret.json';
 const gDriveScopes = ['https://www.googleapis.com/auth/drive'];
 const gDriveApiVersion = 'v3';

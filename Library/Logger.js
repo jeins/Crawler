@@ -4,7 +4,7 @@ const winston = require('winston');
 const path = require('path');
 require('winston-daily-rotate-file');
 
-const logPath = path.resolve(__dirname) + '/../log';
+const logPath = path.resolve(__dirname) + '/../logs';
 
 module.exports = new (winston.Logger)({
     transports: [

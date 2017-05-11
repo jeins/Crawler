@@ -2,9 +2,9 @@
 
 const express = require('express');
 const _ = require('lodash');
-const logger = require('../../Helper/Logger');
+const logger = require('../../Library/Logger');
 const Masjid = require('./Model').db();
-const DistanceCalculation = require('../../Helper/DistanceCalculation');
+const DistanceCalculation = require('../../Library/DistanceCalculation');
 const router = express.Router();
 
 /**

@@ -23,8 +23,8 @@ const uuid = require('uuid/v1');
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
-const logger = require('../../Helper/Logger');
-const GDriveUploader = require('../../Helper/GDriveUploader');
+const logger = require('../../Library/Logger');
+const GDriveUploader = require('../../Library/GoogleApi/GDriveUploader');
 const Model = require('./Model');
 
 const TAG = 'ProductFromCodeCheck';
