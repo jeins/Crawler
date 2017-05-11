@@ -482,7 +482,9 @@ function _walkingOnUpdateProduct(maxPrevDate, cb) {
     let maxDate = (!maxPrevDate) ?
         moment().add('-100', 'days').format('ll') :
         moment().add('-' + maxPrevDate, 'days').format('ll');
-    let isMaxDate = true;
+    let isMaxDate = false;
+
+    logger.log('info', 'set max date on %s', maxDate);
 
     async.mapSeries(_.times(200, String), (page, cb2) => {
         page++;
