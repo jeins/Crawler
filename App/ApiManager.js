@@ -13,5 +13,5 @@ exports.run = (app) => {
     app.use('/masjid', require('./Masjid/Router'));
 
     // routes with middleware
-    app.use('/admin', Authorization, require('./ApiController/Router'));
+    app.use('/admin', Authorization, require('./Admin/Router'));
 };

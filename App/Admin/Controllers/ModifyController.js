@@ -1,8 +1,8 @@
 'use strict';
 const _ = require('lodash');
-const Masjid = require('../Masjid/Model').db();
-const Market = require('../HallalMarkets/Model').db();
-const Restaurant = require('../HallalRestaurants/Model').db();
+const Masjid = require('../../Masjid/Model').db();
+const Market = require('../../HallalMarkets/Model').db();
+const Restaurant = require('../../HallalRestaurants/Model').db();
 const ModelTemplateController = require('./ModelTemplateController');
 
 class ModifyController extends ModelTemplateController
@@ -30,15 +30,15 @@ class ModifyController extends ModelTemplateController
 	}
 
 	_updateHandler(path, data, cb){
-		return null;
+		cb(null, null);
 	}
 
 	_addHandler(path, data, cb){
-		return null;
+		cb(null, null);
 	}
 
 	_deleteHandler(path, data, cb){
-		return null;
+		cb(null, null);
 	}
 }
 

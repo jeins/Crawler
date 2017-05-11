@@ -3,7 +3,7 @@
 const express = require('express');
 const router = express.Router();
 
-const ModifyController = require('./ModifyController');
+const ModifyController = require('./Controllers/ModifyController');
 
 router.post('/modify', (req, res) => {
 	let modifyController = new ModifyController();
