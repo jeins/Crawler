@@ -37,7 +37,7 @@ const ProductStatusController = require('./Controllers/ProductStatusController')
  *         description: haram komposisi
  */
 router.get('/haram', (req, res)=>{
-    res.json(haramIngredients);
+    res.json(ProductStatusController.getHaramIngredients());
 });
 
 /**

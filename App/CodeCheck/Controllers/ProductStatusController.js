@@ -15,6 +15,10 @@ class ProductStatusController
 		})
 	}
 
+	getHaramIngredients(){
+		return this.haramIngredients;
+	}
+
 	runAllCheckProduct(product) {
 	    let result = {
 	        title: product.title,
