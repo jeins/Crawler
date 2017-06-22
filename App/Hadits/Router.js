@@ -48,7 +48,7 @@ router.get('/', (req, res) => {
  */
 router.get('/:perawi', (req, res) => {
     let perawi = req.params.perawi;
-    let params = {perawi: perawi};
+    let params = {perawi: perawi.toLowerCase()};
 
     Hadits.count(params, (err, count) => {
         if (err) res.status(500).send(err);
@@ -88,7 +88,7 @@ router.get('/:perawi/:nrHadits', (req, res) => {
     let perawi = req.params.perawi;
     let nrHadits = req.params.nrHadits;
     let params = {
-        perawi: perawi,
+        perawi: perawi.toLowerCase(),
         nrHadits: nrHadits
     };
 
