@@ -348,7 +348,7 @@ function _walkingOnProduct(productUrl, cb) {
                 case 'Strichcode-Nummer':
                     result.eanCode = value;
                     break;
-                case 'Inhaltsstoffe / techn. Angaben':
+                case 'Inhaltsstoffe / techn. Angaben*':
                     result.ingredient = value;
                     break;
                 case 'Label / Gütesiegel':

@@ -76,7 +76,7 @@ class ProductController
 	            let value = this._clean($(product).find('p:nth-child(2)').text());
 
 	            switch (label) {
-	                case 'Inhaltsstoffe / techn. Angaben':
+	                case 'Inhaltsstoffe / techn. Angaben*':
 	                    result.ingredient = value;
 	                    break;
 	                case 'Zusatzinformationen':
