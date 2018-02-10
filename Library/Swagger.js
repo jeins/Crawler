@@ -5,7 +5,7 @@ const path = require('path');
 exports.setup = (app) => {
     let swaggerDefinition = {
         info: {
-            title: 'MJA-API',
+            title: '',
             version: process.env.VERSION
         },
         host: process.env.API_URL,

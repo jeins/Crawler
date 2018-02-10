@@ -43,3 +43,5 @@ jspm_packages
 
 # secret token
 .tmp/
+
+package-lock.json
