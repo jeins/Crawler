@@ -7,6 +7,7 @@ const Product = require('./Model');
 const router = express.Router();
 const ProductController = require('./Controllers/ProductController');
 const ProductStatusController = require('./Controllers/ProductStatusController');
+const GDriveUploader = require('../../Library/GoogleApi/GDriveUploader');
 
 /**
  * @swagger
@@ -65,25 +66,32 @@ router.get('/:eanCode', (req, res) => {
     let eanCode = req.params.eanCode;
 
     Product.findOne({eanCode: eanCode}, (err, product) => {
-        if (err) res.status(500).send(err);
-        else if (_.has(product, 'ingredient') && product.ingredient) {
+        if (_.has(product, 'ingredient') && product.ingredient) {
             res.json(ProductStatusController.runAllCheckProduct(product));
-        } else {
-            ProductController.directSearchToCodeCheck(eanCode, null, (err, prod)=>{
-                if(err) res.status(500).send(err);
-
-                if(prod){
-                    if(_.has(prod, 'notAllowed') && prod.notAllowed){
-                        res.json(prod);
-                    } else{
-                        res.json(ProductStatusController.runAllCheckProduct(prod));
-                    }
-                } else{
-                    res.status(404).json({notFound: true, eanCode: eanCode});
-                }
-            });
+        } else{
+            res.status(404).json({notFound: true, eanCode: eanCode});
         }
     });
 });
+
+router.post('/product-image', (req, res) => {
+    let id = req.body.id;
+    let imageUrl = req.body.imageUrl;
+    let pathName = req.body.pathName;
+    let token = req.body.token;
+    let adminToken = process.env.ADMIN_TOKEN;
+
+    if (token === adminToken) {
+        GDriveUploader.uploadImg(imageUrl, pathName, id, (error, uploadRes) => {
+            if (!error && uploadRes.done) {
+                return res.json({image: uploadRes.imgName, imageUrl: uploadRes.imgUrl});
+            } else {
+                return res.status(404).json({success: false});
+            }  
+        });
+    } else {
+        res.status(404).json({success: false});
+    }
+})
 
 module.exports = router;

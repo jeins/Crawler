@@ -10,6 +10,7 @@ class YelpClientController {
         this.appId = process.env.YELP_CLIENT_ID;
         this.appSecret = process.env.YELP_CLIENT_SECRET;
         this.accessToken = '';
+        this.tokenKey = process.env.YELP_CLIENT_SECRET;
     }
 
     getAccessToken() {
@@ -34,22 +35,20 @@ class YelpClientController {
     get(resource, params) {
         params = (typeof params === 'undefined') ? {} : params;
 
-        return this.getAccessToken().then((token) => {
-            return request({
-                uri: baseUrl + resource + jsonToQueryString(params),
-                headers: {
-                    'Authorization': 'Bearer ' + token
-                }
-            }).then((response) => {
-                return JSON.parse(response);
-            }).catch((err) => {
-                // Handles expired access token
-                if (err.statusCode == 401) {
-                    this.accessToken = null;
-                    return this.get(resource, params);
-                }
-                throw err;
-            });
+        return request({
+            uri: baseUrl + resource + jsonToQueryString(params),
+            headers: {
+                'Authorization': 'Bearer ' + this.tokenKey
+            }
+        }).then((response) => {
+            return JSON.parse(response);
+        }).catch((err) => {
+            // Handles expired access token
+            if (err.statusCode == 401) {
+                this.accessToken = null;
+                return this.get(resource, params);
+            }
+            throw err;
         });
     }
 
