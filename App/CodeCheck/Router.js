@@ -66,7 +66,7 @@ router.get('/:eanCode', (req, res) => {
     let eanCode = req.params.eanCode;
 
     Product.findOne({eanCode: eanCode}, (err, product) => {
-        if (_.has(product, 'ingredient') && product.ingredient) {
+        if (product && product.ingredient) {
             res.json(ProductStatusController.runAllCheckProduct(product));
         } else{
             res.status(404).json({notFound: true, eanCode: eanCode});
