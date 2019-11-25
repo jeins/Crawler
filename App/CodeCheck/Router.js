@@ -1,5 +1,6 @@
 'use strict';
 
+const axios = require('axios');
 const express = require('express');
 const _ = require('lodash');
 const logger = require('../../Library/Logger');
@@ -69,25 +70,45 @@ router.get('/:eanCode', (req, res) => {
         if (product && product.ingredient) {
             res.json(ProductStatusController.runAllCheckProduct(product));
         } else{
-            res.status(404).json({notFound: true, eanCode: eanCode});
+            axios({
+                method: 'POST',
+                url: process.env.CRAWLER_URL+'/api/product/',
+                data: { eanCode: eanCode },
+                timeout: 2000,
+              }).then((response) => {
+                  const { data } = response;
+
+                    if (data && data.data && data.allowedProduct) {
+                        ProductController.saveProduct(data.data, (err, success, newData) => {
+                            if (success) {
+                                res.json(ProductStatusController.runAllCheckProduct(newData));
+                            } else {
+                                res.status(404).json({notFound: true, eanCode: eanCode});
+                            }
+                        });
+                    } else if(data && !data.allowedProduct) {
+                        res.json({notAllowed: true});
+                    } else {
+                        res.status(404).json({notFound: true, eanCode: eanCode});
+                    }
+                }).catch((err) => {
+                    console.log(err);
+                    res.status(404).json({notFound: true, eanCode: eanCode});
+                });
         }
     });
 });
 
-router.post('/product-image', (req, res) => {
-    let id = req.body.id;
-    let imageUrl = req.body.imageUrl;
-    let pathName = req.body.pathName;
-    let token = req.body.token;
-    let adminToken = process.env.ADMIN_TOKEN;
+router.post('/product', (req, res) => {
+    let { product} = req.body;
 
-    if (token === adminToken) {
-        GDriveUploader.uploadImg(imageUrl, pathName, id, (error, uploadRes) => {
-            if (!error && uploadRes.done) {
-                return res.json({image: uploadRes.imgName, imageUrl: uploadRes.imgUrl});
+    if (product) {
+        ProductController.saveProduct(product, (err, success) => {
+            if (success) {
+                res.json({success: true});
             } else {
-                return res.status(404).json({success: false});
-            }  
+                res.status(404).json({success: false});
+            }
         });
     } else {
         res.status(404).json({success: false});

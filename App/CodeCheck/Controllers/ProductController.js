@@ -6,6 +6,9 @@ const fs = require('fs');
 const path = require('path');
 const _ =require('lodash');
 const cheerio = require('cheerio');
+const GDriveUploader = require('../../../Library/GoogleApi/GDriveUploader');
+const Model = require('../Model');
+const logger = require('../../../Library/Logger');
 
 const allowedProductCategories = [
     'essen', 'getraenke', 'babynahrung', 'babygetraenke', 'baby_gesundheit',
@@ -14,6 +17,28 @@ const allowedProductCategories = [
 
 class ProductController
 {
+	static saveProduct(product, cb) {
+		let pathName = product.thirdLvCategory ? product.thirdLvCategory : product.secondLvCategory;
+		GDriveUploader.uploadImg(product.imageSrc, pathName, product.id, (error, res) => {
+				if (!error && res.done) {
+					product.image = res.imgName;
+					product.imageUrl = res.imgUrl;
+				}
+
+				let newFood = Model(product);
+				newFood.save((err) => {
+						if (err) {
+								logger.log('error', 'error add data to db, url: %s | error message: %s', product.urlSrc, error);
+								return cb(err, null, product);
+						}
+
+						logger.log('info', 'finish save product %s', JSON.stringify(product));
+						//logger.log('warn', JSON.stringify(result));
+						return cb(null, true, product);
+				});
+		});
+	}
+
     /**
 	 *
      * @param eanCode
