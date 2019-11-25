@@ -19,7 +19,7 @@
     "googleapis": "^16.1.0",
     "lodash": "^4.16.6",
     "moment": "^2.17.1",
-    "mongoose": "^4.8.1",
+    "mongoose": "^5.7.12",
     "request": "^2.78.0",
     "request-promise": "^4.2.0",
     "swagger-jsdoc": "^1.9.2",
