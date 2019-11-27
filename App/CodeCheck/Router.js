@@ -66,7 +66,7 @@ router.get('/haram', (req, res)=>{
 router.get('/:eanCode', (req, res) => {
     let eanCode = req.params.eanCode;
 
-    Product.findOne({eanCode: eanCode}, (err, product) => {
+    Product.findOne({eanCode: eanCode, ingredient: { $ne: null }}, (err, product) => {
         if (product && product.ingredient) {
             res.json(ProductStatusController.runAllCheckProduct(product));
         } else{
@@ -74,7 +74,7 @@ router.get('/:eanCode', (req, res) => {
                 method: 'POST',
                 url: process.env.CRAWLER_URL+'/api/product/',
                 data: { eanCode: eanCode },
-                timeout: 2000,
+                timeout: 50000,
               }).then((response) => {
                   const { data } = response;
 
@@ -86,8 +86,8 @@ router.get('/:eanCode', (req, res) => {
                                 res.status(404).json({notFound: true, eanCode: eanCode});
                             }
                         });
-                    } else if(data && !data.allowedProduct) {
-                        res.json({notAllowed: true});
+                    } else if(data && data.data.title && !data.allowedProduct) {
+                        res.json({notAllowed: true, title: data.data.title});
                     } else {
                         res.status(404).json({notFound: true, eanCode: eanCode});
                     }

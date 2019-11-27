@@ -18,26 +18,56 @@ const allowedProductCategories = [
 class ProductController
 {
 	static saveProduct(product, cb) {
-		let pathName = product.thirdLvCategory ? product.thirdLvCategory : product.secondLvCategory;
-		GDriveUploader.uploadImg(product.imageSrc, pathName, product.id, (error, res) => {
-				if (!error && res.done) {
-					product.image = res.imgName;
-					product.imageUrl = res.imgUrl;
-				}
-
-				let newFood = Model(product);
-				newFood.save((err) => {
-						if (err) {
-								logger.log('error', 'error add data to db, url: %s | error message: %s', product.urlSrc, error);
-								return cb(err, null, product);
+		this._checkIsProductExist(product.eanCode, (err, prod) => {
+			if (!prod.exist) {
+				let pathName = product.thirdLvCategory ? product.thirdLvCategory : product.secondLvCategory;
+				GDriveUploader.uploadImg(product.imageSrc, pathName, product.id, (error, res) => {
+						if (!error && res.done) {
+							product.image = res.imgName;
+							product.imageUrl = res.imgUrl;
 						}
+		
+						let newFood = Model(product);
+						newFood.save((err) => {
+								if (err) {
+										logger.log('error', 'error add data to db, url: %s | error message: %s', product.urlSrc, error);
+										return cb(err, null, product);
+								}
 
-						logger.log('info', 'finish save product %s', JSON.stringify(product));
-						//logger.log('warn', JSON.stringify(result));
-						return cb(null, true, product);
+								logger.log('info', 'finish save product %s', JSON.stringify(product));
+								//logger.log('warn', JSON.stringify(result));
+								return cb(null, true, product);
+						});
+
 				});
+			} else {
+				product.image = prod.image;
+				product.imageUrl = prod.imageUrl;
+				Model.update({id: prod.id}, {$set: product}, () => {
+					logger.log('info', 'finish update product %s', JSON.stringify(product));
+					cb(null, true, product);
+				});
+			}
 		});
 	}
+
+	static _checkIsProductExist(eanCode, cb) {
+    let query = Model.where({eanCode: eanCode});
+
+    query.findOne(function (err, doc) {
+        if (err) {
+            logger.log('error', 'error on check existing of ean code, ean code: %s | error message: %s', eanCode, err.message);
+            return cb(err, null);
+        }
+
+        if (doc) {
+            let result = {exist: true, id: doc.id, crawledAt: doc.crawledAt, imageUrl: doc.imageUrl, image: doc.image};
+            result.isImageExist = (doc.imageUrl) ? true : false;
+
+            cb(null, result);
+        } else cb(null, {exist: false});
+    });
+}
 
     /**
 	 *
